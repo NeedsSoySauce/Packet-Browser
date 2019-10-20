@@ -1,5 +1,3 @@
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.table.AbstractTableModel;
 
 public class PacketTableModel extends AbstractTableModel {
@@ -14,7 +12,7 @@ public class PacketTableModel extends AbstractTableModel {
      * @param packets    the packets to be displayed in a table
      * @param isSrcHosts true if the packets are from the source, and false if they're from the destination
      */
-    public PacketTableModel(@NotNull Packet[] packets, boolean isSrcHosts) {
+    public PacketTableModel(Packet[] packets, boolean isSrcHosts) {
         this.packets = packets;
         data = new Object[packets.length + 2][3];
         for (int i = 0; i < packets.length; i++) {

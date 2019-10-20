@@ -11,7 +11,6 @@ public class RunApp implements Runnable {
         SwingUtilities.invokeLater(new RunApp());
     }
 
-
     @Override
     public void run() {
         new App();

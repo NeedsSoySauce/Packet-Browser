@@ -1,5 +1,3 @@
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 
 public class Packet {
@@ -16,7 +14,7 @@ public class Packet {
      *                         <id> <timestamp> <src ip> <src port> <dest ip> <dest port> <ethernet frame size> <IP
      *                         packet size}"
      */
-    public Packet(@NotNull String tabDelimitedData) {
+    public Packet(String tabDelimitedData) {
         String[] data = tabDelimitedData.split("\\t", 9);
 
         // Extend all data so that it's length is at least 8
