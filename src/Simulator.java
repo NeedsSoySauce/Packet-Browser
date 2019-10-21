@@ -24,7 +24,7 @@ public class Simulator {
             for (int i = 0; i < lines.size(); i++) {
                 Packet packet = new Packet(lines.get(i));
                 packet.setLineIndex(i + 1);
-                if (pattern.matcher(packet.getSourceHost()).matches() && pattern.matcher(packet.getSourceHost()).matches()) {
+                if (pattern.matcher(packet.getSourceHost()).matches() && pattern.matcher(packet.getDestinationHost()).matches()) {
                     packets.add(packet);
                 }
             }
@@ -76,11 +76,12 @@ public class Simulator {
     }
 
     /**
+     * Returns an array of valid Packet objects whose source or destination ip addresses (depending on whether isSrcHost
+     * is true) match the given ip address.
      * @param ip        the ip to get data for
      * @param isSrcHost true to match the given ip against each packets source host, otherwise false to match against
      *                  each packet's destination host
-     * @return an array of valid Packet objects whose source or destination ip addresses (depending on whether isSrcHost
-     * is true) match the given ip address.
+     * @return an array of matching packet objects
      */
     public Packet[] getTableData(String ip, boolean isSrcHost) {
         Predicate<Packet> predicate;
@@ -94,4 +95,45 @@ public class Simulator {
         return packets.stream().filter(predicate).toArray(Packet[]::new);
     }
 
+    /**
+     * Returns an array of valid Packet objects whose source and destination ip addresses match the given ip addresses.
+     *
+     * @param srcIP  the source ip address
+     * @param destIP the destination ip address
+     * @return an array of matching packet objects
+     */
+    public Packet[] getPacketFlow(String srcIP, String destIP) {
+        Predicate<Packet> predicate;
+        predicate = packet -> packet.getSourceHost().equals(srcIP) && packet.getDestinationHost().equals(destIP);
+        return packets.stream().filter(predicate).toArray(Packet[]::new);
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

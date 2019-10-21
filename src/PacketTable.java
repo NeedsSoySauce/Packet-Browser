@@ -10,7 +10,7 @@ public class PacketTable extends JTable {
     /**
      * Creates a new PacketTable
      */
-    PacketTable() {
+    public PacketTable() {
         setCellSelectionEnabled(true);
     }
 

@@ -66,7 +66,7 @@ public class App extends JFrame {
         quitMenuItem.addActionListener(e -> dispose());
         fileMenu.add(quitMenuItem);
 
-        // Setup menu and popup mene for copy and paste
+        // Setup menu and popup menu for copy and paste
         JMenu editMenu = new JMenu("Edit");
         editMenu.setMnemonic(KeyEvent.VK_E);
         menuBar.add(editMenu);
@@ -152,7 +152,6 @@ public class App extends JFrame {
             packetTable = packetPanel.getPacketTable();
             setTitle(packetPanel.getName());
         });
-
         add(tabbedPane);
 
         setSize(800, 600);
