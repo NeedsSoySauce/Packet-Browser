@@ -237,7 +237,6 @@ public class App extends JFrame {
 
             closeButton.addActionListener(e -> {
                 tabbedPane.remove(component);
-                this.component = null; // Remove reference to prevent "Exception while removing reference."
             });
 
             add(closeButton);
