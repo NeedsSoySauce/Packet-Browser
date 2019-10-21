@@ -14,6 +14,14 @@ public class Host implements Comparable<Host> {
     }
 
     /**
+     * Sets this hosts ip to the given ip
+     * @param ip the hosts new ip address
+     */
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    /**
      * @return the hosts ip address
      */
     public String getIp() {

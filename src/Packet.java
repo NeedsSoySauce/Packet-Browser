@@ -2,7 +2,7 @@ import java.util.Arrays;
 
 public class Packet {
 
-    private String src, dest;
+    private Host srcHost, destHost;
     private double time;
     private int size, lineIndex;
     private String[] data;
@@ -30,8 +30,8 @@ public class Packet {
 
         this.data = data;
         lineIndex = data[0].isEmpty() ? 0 : Integer.parseInt(data[0]);
-        src = data[2];
-        dest = data[4];
+        srcHost = new Host(data[2]);
+        destHost = new Host(data[4]);
         time = data[1].isEmpty() ? 0 : Double.parseDouble(data[1]);
         size = data[7].isEmpty() ? 0 : Integer.parseInt(data[7]);
     }
@@ -50,14 +50,14 @@ public class Packet {
      * @return this packet's source host's ip
      */
     public String getSourceHost() {
-        return src;
+        return srcHost.getIp();
     }
 
     /**
      * @param src a string that consists of four decimal numbers between 0 and 255 separated by dots
      */
     public void setSourceHost(String src) {
-        this.src = src;
+        srcHost.setIp(src);
         data[2] = src;
     }
 
@@ -65,14 +65,14 @@ public class Packet {
      * @return this packet's destination host's ip
      */
     public String getDestinationHost() {
-        return dest;
+        return destHost.getIp();
     }
 
     /**
      * @param dest a string that consists of four decimal numbers between 0 and 255 separated by dots
      */
     public void setDestinationHost(String dest) {
-        this.dest = dest;
+        destHost.setIp(dest);
         data[3] = dest;
     }
 
@@ -122,7 +122,7 @@ public class Packet {
 
     @Override
     public String toString() {
-        return String.format("src=%s, dest=%s, time=%.2f, size=%d", src, dest, time, size);
+        return String.format("src=%s, dest=%s, time=%.2f, size=%d", srcHost, destHost, time, size);
     }
 
 }

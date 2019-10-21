@@ -29,7 +29,7 @@ public class Simulator {
                 }
             }
         } catch (IOException e) {
-            System.out.println(e);
+            System.out.println("1");
         }
     }
 

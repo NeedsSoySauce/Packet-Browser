@@ -183,7 +183,7 @@ public class PacketPanel extends JPanel {
         try {
             lines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
-            System.out.println(e);
+            System.out.println("2");
         }
     }
 

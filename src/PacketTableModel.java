@@ -2,7 +2,6 @@ import javax.swing.table.AbstractTableModel;
 
 public class PacketTableModel extends AbstractTableModel {
 
-
     public static final String TIMESTAMP_COL_NAME = "Timestamp";
     public static final String SRC_COL_NAME = "Source IP";
     public static final String DEST_COL_NAME = "Destination IP";
