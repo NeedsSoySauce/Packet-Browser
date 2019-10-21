@@ -1,8 +1,5 @@
-import javax.management.ListenerNotFoundException;
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.*;
@@ -11,24 +8,22 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.List;
 
 public class App extends JFrame {
 
+    public static final String APP_NAME = "Packet Browser";
+    protected static final ImageIcon CLOSE_ICON = new ImageIcon(App.class.getResource("close_icon.gif"));
+    private Action copyAction, pasteAction;
+    private KeyStroke copyKeyStroke = KeyStroke.getKeyStroke("ctrl C");
+    private KeyStroke pasteKeyStroke = KeyStroke.getKeyStroke("ctrl V");
+    private JPopupMenu popupMenu = new JPopupMenu();
     private JTabbedPane tabbedPane = new JTabbedPane();
     private PacketTable packetTable;
-
-    public static final ImageIcon closeIcon = new ImageIcon(App.class.getResource("close_icon.gif"));
-
-    private ListSelectionListener copyPasteListener;
-    Action copyAction, pasteAction;
-
+    private ListSelectionListener copyPasteListener = e -> updateCopyPasteActions();
     private JFileChooser chooser = new JFileChooser();
 
     /**
-     * Creates a new App with it's related GUI
+     * Creates a new App with it's related GUI elements
      */
     public App() {
 
@@ -61,14 +56,12 @@ public class App extends JFrame {
         quitMenuItem.addActionListener(e -> dispose());
         fileMenu.add(quitMenuItem);
 
-        // Setup menu for copy and paste
-        JPopupMenu popupMenu = new JPopupMenu();
-//        packetTable.setComponentPopupMenu(popupMenu);
+        // Setup menu and popup mene for copy and paste
         JMenu editMenu = new JMenu("Edit");
         editMenu.setMnemonic(KeyEvent.VK_E);
         menuBar.add(editMenu);
 
-        // Setup copy menu item
+        // Setup copy menu items
         JMenuItem copyPopupMenuItem = new JMenuItem("Copy");
         JMenuItem copyMenuItem = new JMenuItem("Copy");
 
@@ -92,28 +85,24 @@ public class App extends JFrame {
                 StringSelection selection = new StringSelection(stringBuilder.toString());
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(selection, null);
-
             }
         };
         copyAction.setEnabled(false);
+        copyAction.putValue(Action.ACCELERATOR_KEY, copyKeyStroke);
 
-//        KeyStroke copyKeyStroke = KeyStroke.getKeyStroke("ctrl C");
-//        copyAction.putValue(Action.ACCELERATOR_KEY, copyKeyStroke);
-//        packetTable.getInputMap().put(copyKeyStroke, "copyAction");
-//        packetTable.getActionMap().put("copyAction", copyAction);
-
-        copyMenuItem.setAction(copyAction);
         copyPopupMenuItem.setAction(copyAction);
         popupMenu.add(copyPopupMenuItem);
+        copyMenuItem.setAction(copyAction);
         editMenu.add(copyMenuItem);
 
-        // Setup paste menu item
+        // Setup paste menu items
         JMenuItem pasteMenuItem = new JMenuItem("Paste");
         JMenuItem pastePopupMenuItem = new JMenuItem("Paste");
 
         pasteAction = new AbstractAction("Paste") {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("Paste!");
                 // Paste clipboard contents into every selected cell (that's editable)
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 Transferable data = clipboard.getContents(null);
@@ -137,68 +126,84 @@ public class App extends JFrame {
             }
         };
         pasteAction.setEnabled(false);
-
-//        KeyStroke pasteKeyStroke = KeyStroke.getKeyStroke("ctrl V");
-//        pasteAction.putValue(Action.ACCELERATOR_KEY, pasteKeyStroke);
-//        packetTable.getInputMap().put(pasteKeyStroke, "pasteAction");
-//        packetTable.getActionMap().put("pasteAction", pasteAction);
+        pasteAction.putValue(Action.ACCELERATOR_KEY, pasteKeyStroke);
 
         pastePopupMenuItem.setAction(pasteAction);
-        pasteMenuItem.setAction(pasteAction);
         popupMenu.add(pastePopupMenuItem);
+        pasteMenuItem.setAction(pasteAction);
         editMenu.add(pasteMenuItem);
 
-        copyPasteListener = e -> {
-            updateCopyPasteActions();
-        };
-
-        // Update copy and paste actions based on what is selected
+        // Whenever the selected tab changes, update the listeners on the current and previous tab
         tabbedPane.addChangeListener(e -> {
-            // Remove copyPasteListener from the last packetTable and add them to this one
-            packetTable.getSelectionModel().removeListSelectionListener(copyPasteListener);
-            packetTable = ((PacketPanel)tabbedPane.getSelectedComponent()).getPacketTable();
-            packetTable.getSelectionModel().addListSelectionListener(copyPasteListener);
-            updateCopyPasteActions();
+            PacketPanel packetPanel = ((PacketPanel) tabbedPane.getSelectedComponent());
+            if (packetPanel == null) {
+                setTitle(APP_NAME);
+                return;
+            }
+            packetTable = packetPanel.getPacketTable();
+            setTitle(packetPanel.getName());
         });
 
-        tabbedPane.addTab(null, new PacketPanel(null));
         add(tabbedPane);
 
+        setSize(800, 600);
         setTitle("Packet Browser");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        pack();
         setVisible(true);
+    }
+
+    private boolean isEditableCellSelected() {
+        int[] rows = packetTable.getSelectedRows();
+        int[] cols = packetTable.getSelectedColumns();
+
+        for (int row : rows) {
+            for (int col : cols) {
+                if (packetTable.isCellEditable(row, col)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void updateCopyPasteActions() {
         boolean isCellSelected = packetTable.getSelectedRow() != -1;
         copyAction.setEnabled(isCellSelected);
-        pasteAction.setEnabled(isCellSelected);
-    }
-
-    private void onTabChange() {
-
+        pasteAction.setEnabled(isEditableCellSelected());
     }
 
     private void openFile(boolean openInNewTab) {
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+
+            File file = chooser.getSelectedFile();
             PacketPanel packetPanel;
             String filename;
-            File file = chooser.getSelectedFile();
 
             if (openInNewTab || tabbedPane.getSelectedComponent() == null) {
                 packetPanel = new PacketPanel(file);
-                filename = packetPanel.getName();
-                tabbedPane.addTab(filename, packetPanel);
+                tabbedPane.addTab(null, packetPanel);
                 tabbedPane.setSelectedComponent(packetPanel);
             } else {
                 packetPanel = (PacketPanel) tabbedPane.getSelectedComponent();
                 packetPanel.openFile(file);
-                filename = packetPanel.getName();
-                tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), filename);
             }
+
+            // Setup listeners to enable or disable popup menu items based on what's selected
+            packetTable = packetPanel.getPacketTable();
+            packetTable.getSelectionModel().addListSelectionListener(copyPasteListener);
+            updateCopyPasteActions();
+
+            // Set shortcuts for copy and paste
+            packetTable.getInputMap().put(copyKeyStroke, "copyAction");
+            packetTable.getActionMap().put("copyAction", copyAction);
+            packetTable.getInputMap().put(pasteKeyStroke, "pasteAction");
+            packetTable.getActionMap().put("pasteAction", pasteAction);
+
+            packetPanel.getPacketTable().setComponentPopupMenu(popupMenu);
+            filename = packetPanel.getName();
             tabbedPane.setTabComponentAt(tabbedPane.getSelectedIndex(), new PacketTab(filename, packetPanel));
             setTitle(filename);
+
         } else {
             setTitle("Packet Browser");
         }
@@ -214,8 +219,7 @@ public class App extends JFrame {
             setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
             setOpaque(false);
             add(new JLabel(name));
-
-            JButton closeButton = new JButton(new ImageIcon(App.closeIcon.getImage().getScaledInstance(16, 16, BufferedImage.SCALE_FAST)));
+            JButton closeButton = new JButton(new ImageIcon(CLOSE_ICON.getImage().getScaledInstance(16, 16, BufferedImage.SCALE_FAST)));
             closeButton.setBorder(null);
             closeButton.setBorderPainted(false);
             closeButton.setContentAreaFilled(false);

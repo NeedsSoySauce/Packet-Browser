@@ -2,8 +2,6 @@ import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +43,7 @@ public class PacketPanel extends JPanel {
     };
 
     /**
-     * Creates a new App with it's related GUI
+     * Creates a new PacketPanel with it's related GUI elements
      */
     public PacketPanel(File file) {
         this.file = file;
