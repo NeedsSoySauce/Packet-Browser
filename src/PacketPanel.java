@@ -4,24 +4,20 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
+import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
-public class App extends JFrame {
+public class PacketPanel extends JPanel {
 
     private JComboBox<Host> comboBox = new JComboBox<>();
     private DefaultComboBoxModel<Host> srcComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Host> destComboBoxModel = new DefaultComboBoxModel<>();
     private JRadioButton srcRadioButton = new JRadioButton("Source");
     private JRadioButton destRadioButton = new JRadioButton("Destination");
-
-    private JTabbedPane tabbedPane = new JTabbedPane();
-    public static final ImageIcon closeIcon = new ImageIcon(App.class.getResource("close_icon.gif"));
 
     private JFileChooser chooser = new JFileChooser();
     private File file;
@@ -51,43 +47,56 @@ public class App extends JFrame {
     /**
      * Creates a new App with it's related GUI
      */
-    public App() {
+    public PacketPanel(File file) {
+        this.file = file;
+        openFile(file);
 
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
+        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
         chooser.setFileFilter(new FileNameExtensionFilter("txt files", "txt"));
         chooser.setDialogTitle("Select a file...");
 
-        // Setup menu bar
-        JMenuBar menuBar = new JMenuBar();
-        setJMenuBar(menuBar);
+        // Setup radio buttons to select whether we want to select packets based on their source or their destination
+        ButtonGroup radioButtonGroup = new ButtonGroup();
+        JPanel topPanel = new JPanel();
+        srcRadioButton.setSelected(true);
+        srcRadioButton.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                comboBox.setModel(srcComboBoxModel);
+            }
+            displaySelectedHostData();
+        });
+        radioButtonGroup.add(srcRadioButton);
+        topPanel.add(srcRadioButton);
 
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.setMnemonic(KeyEvent.VK_F);
-        menuBar.add(fileMenu);
+        destRadioButton.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                comboBox.setModel(destComboBoxModel);
+            }
+            displaySelectedHostData();
+        });
+        radioButtonGroup.add(destRadioButton);
+        topPanel.add(destRadioButton);
 
-        JMenuItem openMenuItem = new JMenuItem("Open...");
-        openMenuItem.addActionListener(e -> openFile(false));
-        openMenuItem.setAccelerator(KeyStroke.getKeyStroke("ctrl O"));
-        fileMenu.add(openMenuItem);
+        // Setup a combo box to select ips from based on the selected radio button
+        comboBox.addActionListener(e -> displaySelectedHostData());
+        comboBox.setVisible(false);
+        topPanel.add(comboBox);
 
-        JMenuItem openNewTabMenuItem = new JMenuItem("Open in new tab...");
-        openNewTabMenuItem.addActionListener(e -> openFile(true));
-        openNewTabMenuItem.setAccelerator(KeyStroke.getKeyStroke("ctrl shift O"));
-        fileMenu.add(openNewTabMenuItem);
+        // Setup table
+        JPanel packetTablePanel = new JPanel();
+        packetTablePanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 8, 8));
+        packetTablePanel.setLayout(new BorderLayout());
+        JScrollPane packetTableScrollPane = new JScrollPane(packetTable);
+        packetTablePanel.add(packetTableScrollPane);
 
-        fileMenu.add(new JSeparator());
-
-        JMenuItem quitMenuItem = new JMenuItem("Quit");
-        quitMenuItem.addActionListener(e -> dispose());
-        fileMenu.add(quitMenuItem);
+        add(topPanel);
+        add(packetTablePanel);
 
         // Setup menu and popup menu for copy and paste
         JPopupMenu popupMenu = new JPopupMenu();
         packetTable.setComponentPopupMenu(popupMenu);
         JMenu editMenu = new JMenu("Edit");
-        editMenu.setMnemonic(KeyEvent.VK_E);
-        menuBar.add(editMenu);
 
         // Setup copy menu item
         JMenuItem copyMenuItem = new JMenuItem("Copy");
@@ -176,36 +185,21 @@ public class App extends JFrame {
             pasteAction.setEnabled(isCellSelected);
         });
 
-        tabbedPane.addTab(null, new PacketPanel(null));
-        add(tabbedPane);
-
-        setTitle("Packet Browser");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        pack();
         setVisible(true);
     }
 
-    private void openFile(boolean openInNewTab) {
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            PacketPanel packetPanel;
-            String filename;
-            file = chooser.getSelectedFile();
-
-            if (openInNewTab || tabbedPane.getSelectedComponent() == null) {
-                packetPanel = new PacketPanel(file);
-                filename = packetPanel.getName();
-                tabbedPane.addTab(filename, packetPanel);
-                tabbedPane.setSelectedComponent(packetPanel);
-            } else {
-                packetPanel = (PacketPanel) tabbedPane.getSelectedComponent();
-                packetPanel.openFile(file);
-                filename = packetPanel.getName();
-                tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), filename);
-            }
-            tabbedPane.setTabComponentAt(tabbedPane.getSelectedIndex(), new PacketTab(filename, packetPanel));
-            setTitle(filename);
-        } else {
-            setTitle("Packet Browser");
+    /**
+     * Opens a file and displays it's contents
+     * @param file the file to open
+     */
+    public void openFile(File file) {
+        if (file != null) {
+            this.file = file;
+            setName(file.getName());
+            simulator = new Simulator(file);
+            loadLines();
+            loadComboBoxOptions();
+            displaySelectedHostData();
         }
     }
 
@@ -235,40 +229,4 @@ public class App extends JFrame {
         comboBox.setVisible(true);
     }
 
-    class PacketTab extends JPanel {
-
-        Component component;
-
-        PacketTab(String name, Component component) {
-            this.component = component;
-
-            setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-            setOpaque(false);
-            add(new JLabel(name));
-
-            JButton closeButton = new JButton(new ImageIcon(App.closeIcon.getImage().getScaledInstance(16, 16, BufferedImage.SCALE_FAST)));
-            closeButton.setBorder(null);
-            closeButton.setBorderPainted(false);
-            closeButton.setContentAreaFilled(false);
-            closeButton.setFocusPainted(false);
-            closeButton.setOpaque(false);
-
-            closeButton.addActionListener(e -> {
-                tabbedPane.remove(component);
-            });
-
-            add(closeButton);
-        }
-    }
-
 }
-
-
-
-
-
-
-
-
-
-
