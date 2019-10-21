@@ -49,7 +49,6 @@ public class PacketPanel extends JPanel {
      */
     public PacketPanel(File file) {
         this.file = file;
-        openFile(file);
 
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
@@ -184,6 +183,8 @@ public class PacketPanel extends JPanel {
             copyAction.setEnabled(isCellSelected);
             pasteAction.setEnabled(isCellSelected);
         });
+
+        openFile(file);
 
         setVisible(true);
     }
