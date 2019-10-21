@@ -4,7 +4,7 @@ import java.awt.*;
 
 public class PacketTable extends JTable {
 
-    protected static final Color EVEN_ROW_COLOR = new Color(250, 250, 250);
+    protected static final Color EVEN_ROW_COLOR = new Color(245, 245, 245);
     protected static final Color BOTTOM_ROW_COLOR = new Color(225, 225, 225);
 
     /**

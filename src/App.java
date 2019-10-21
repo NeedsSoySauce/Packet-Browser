@@ -1,3 +1,4 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -12,7 +13,7 @@ import java.io.IOException;
 public class App extends JFrame {
 
     public static final String APP_NAME = "Packet Browser";
-    protected static final ImageIcon CLOSE_ICON = new ImageIcon(App.class.getResource("close_icon.gif"));
+    private ImageIcon closeTabIcon;
     private Action copyAction, pasteAction;
     private KeyStroke copyKeyStroke = KeyStroke.getKeyStroke("ctrl C");
     private KeyStroke pasteKeyStroke = KeyStroke.getKeyStroke("ctrl V");
@@ -27,8 +28,17 @@ public class App extends JFrame {
      */
     public App() {
 
+        // Load close tab icon
+        try {
+            BufferedImage image = ImageIO.read(App.class.getResource("close_icon.gif"));
+            closeTabIcon = new ImageIcon(image.getScaledInstance(16, 16, BufferedImage.SCALE_SMOOTH));
+        } catch (IOException | NullPointerException e) {
+            // Failed to load image
+        }
+
         setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 
+        // Setup file chooser
         chooser.setFileFilter(new FileNameExtensionFilter("txt files", "txt"));
         chooser.setDialogTitle("Select a file...");
 
@@ -102,13 +112,12 @@ public class App extends JFrame {
         pasteAction = new AbstractAction("Paste") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Paste!");
                 // Paste clipboard contents into every selected cell (that's editable)
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 Transferable data = clipboard.getContents(null);
-                String content;
+                String clipboardContent;
                 try {
-                    content = data.getTransferData(DataFlavor.stringFlavor).toString();
+                    clipboardContent = data.getTransferData(DataFlavor.stringFlavor).toString();
                 } catch (UnsupportedFlavorException | IOException ex) {
                     return;
                 }
@@ -118,8 +127,8 @@ public class App extends JFrame {
 
                 for (int row : rows) {
                     for (int col : cols) {
-                        if (packetTable.isCellEditable(row, col)) {
-                            packetTable.setValueAt(content, row, col);
+                        if (packetTable.isCellEditable(row, col) && packetTable.getValueAt(row, col) != clipboardContent) {
+                            packetTable.setValueAt(clipboardContent, row, col);
                         }
                     }
                 }
@@ -219,7 +228,8 @@ public class App extends JFrame {
             setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
             setOpaque(false);
             add(new JLabel(name));
-            JButton closeButton = new JButton(new ImageIcon(CLOSE_ICON.getImage().getScaledInstance(16, 16, BufferedImage.SCALE_FAST)));
+
+            JButton closeButton = new JButton(closeTabIcon);
             closeButton.setBorder(null);
             closeButton.setBorderPainted(false);
             closeButton.setContentAreaFilled(false);
