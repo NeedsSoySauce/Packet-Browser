@@ -102,7 +102,7 @@ public class Simulator {
      * @param destIP the destination ip address
      * @return an array of matching packet objects
      */
-    public Packet[] getPacketFlow(String srcIP, String destIP) {
+    public Packet[] getPacketFlowTableData(String srcIP, String destIP) {
         Predicate<Packet> predicate;
         predicate = packet -> packet.getSourceHost().equals(srcIP) && packet.getDestinationHost().equals(destIP);
         return packets.stream().filter(predicate).toArray(Packet[]::new);

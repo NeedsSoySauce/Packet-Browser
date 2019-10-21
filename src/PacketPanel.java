@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -11,11 +13,16 @@ import java.util.List;
 
 public class PacketPanel extends JPanel {
 
-    private JComboBox<Host> comboBox = new JComboBox<>();
+    private JComboBox<Host> browseComboBox = new JComboBox<>();
     private DefaultComboBoxModel<Host> srcComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Host> destComboBoxModel = new DefaultComboBoxModel<>();
     private JRadioButton srcRadioButton = new JRadioButton("Source");
     private JRadioButton destRadioButton = new JRadioButton("Destination");
+
+    private JComboBox<Host> flowSrcComboBox = new JComboBox<>();
+    private JComboBox<Host> flowDestComboBox = new JComboBox<>();
+    private JRadioButton browseRadioButton = new JRadioButton("Browse");
+    private JRadioButton flowRadioButton = new JRadioButton("Flow");
 
     private JFileChooser chooser = new JFileChooser();
     private File file;
@@ -53,32 +60,86 @@ public class PacketPanel extends JPanel {
         chooser.setFileFilter(new FileNameExtensionFilter("txt files", "txt"));
         chooser.setDialogTitle("Select a file...");
 
+        JPanel topPanel = new JPanel();
+        Border etchedBorder = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+
+        FlowLayout flowLayout = new FlowLayout();
+        flowLayout.setHgap(4);
+        flowLayout.setVgap(0);
+
+        JPanel modePanel = new JPanel();
+        modePanel.setLayout(flowLayout);
+        modePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "Mode"));
+        modePanel.add(browseRadioButton);
+        modePanel.add(flowRadioButton);
+        topPanel.add(modePanel);
+
+        DisableablePanel browsePanel = new DisableablePanel();
+        browsePanel.setLayout(flowLayout);
+        browsePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "View packets from..."));
+        browsePanel.add(srcRadioButton);
+        browsePanel.add(destRadioButton);
+        browsePanel.add(browseComboBox);
+        topPanel.add(browsePanel);
+
+        DisableablePanel flowPanel = new DisableablePanel();
+        flowPanel.setLayout(flowLayout);
+        flowPanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "View packet flow from..."));
+        flowPanel.add(flowSrcComboBox);
+        flowPanel.add(new JLabel("to"));
+        flowPanel.add(flowDestComboBox);
+        topPanel.add(flowPanel);
+        flowPanel.setEnabled(false);
+
+        // Setup radio buttons to select the mode to view packets in
+        ButtonGroup modeButtonGroup = new ButtonGroup();
+        modeButtonGroup.add(browseRadioButton);
+        modeButtonGroup.add(flowRadioButton);
+        browseRadioButton.setSelected(true);
+
+        flowRadioButton.addItemListener(l -> {
+            boolean isSelected = l.getStateChange() == ItemEvent.SELECTED;
+            if (l.getStateChange() == ItemEvent.SELECTED) {
+                // Display flow content
+                displaySelectedPacketFlowData();
+            }
+            flowPanel.setEnabled(isSelected);
+        });
+
+        browseRadioButton.addItemListener(l -> {
+            boolean isSelected = l.getStateChange() == ItemEvent.SELECTED;
+            if (l.getStateChange() == ItemEvent.SELECTED) {
+                // Display browse content
+                displaySelectedHostData();
+            }
+            browsePanel.setEnabled(isSelected);
+        });
+
         // Setup radio buttons to select whether we want to select packets based on their source or their destination
         ButtonGroup radioButtonGroup = new ButtonGroup();
-        JPanel topPanel = new JPanel();
+        radioButtonGroup.add(srcRadioButton);
+        radioButtonGroup.add(destRadioButton);
         srcRadioButton.setSelected(true);
+
         srcRadioButton.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                comboBox.setModel(srcComboBoxModel);
+                browseComboBox.setModel(srcComboBoxModel);
             }
             displaySelectedHostData();
         });
-        radioButtonGroup.add(srcRadioButton);
-        topPanel.add(srcRadioButton);
 
         destRadioButton.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                comboBox.setModel(destComboBoxModel);
+                browseComboBox.setModel(destComboBoxModel);
             }
             displaySelectedHostData();
         });
-        radioButtonGroup.add(destRadioButton);
-        topPanel.add(destRadioButton);
 
-        // Setup a combo box to select ips from based on the selected radio button
-        comboBox.addActionListener(e -> displaySelectedHostData());
-        comboBox.setVisible(false);
-        topPanel.add(comboBox);
+        // Setup a combo box to select IPs from based on the selected radio button (if in
+        browseComboBox.addActionListener(e -> displaySelectedHostData());
+        flowSrcComboBox.addActionListener(e -> displaySelectedPacketFlowData());
+        flowDestComboBox.addActionListener(e -> displaySelectedPacketFlowData());
+
 
         // Setup table
         JPanel packetTablePanel = new JPanel();
@@ -104,6 +165,7 @@ public class PacketPanel extends JPanel {
 
     /**
      * Opens a file and displays it's contents
+     *
      * @param file the file to open
      */
     public void openFile(File file) {
@@ -126,7 +188,7 @@ public class PacketPanel extends JPanel {
     }
 
     private void displaySelectedHostData() {
-        Host host = (Host) comboBox.getSelectedItem();
+        Host host = (Host) browseComboBox.getSelectedItem();
         if (host != null) {
             boolean isSrcHosts = srcRadioButton.isSelected();
             Packet[] packets = simulator.getTableData(host.toString(), isSrcHosts);
@@ -136,11 +198,28 @@ public class PacketPanel extends JPanel {
         }
     }
 
+    private void displaySelectedPacketFlowData() {
+        Host srcHost = (Host) flowSrcComboBox.getSelectedItem();
+        Host destHost = (Host) flowDestComboBox.getSelectedItem();
+        if (srcHost != null && destHost != null) {
+            Packet[] packets = simulator.getPacketFlowTableData(srcHost.toString(), destHost.toString());
+            model = new PacketTableModel(packets, true);
+            model.addTableModelListener(tableModelListener);
+            packetTable.setModel(model);
+        }
+    }
+
     private void loadComboBoxOptions() {
-        srcComboBoxModel = new DefaultComboBoxModel<>(simulator.getUniqueSortedSourceHosts());
-        destComboBoxModel = new DefaultComboBoxModel<>(simulator.getUniqueSortedDestHosts());
-        comboBox.setModel(srcRadioButton.isSelected() ? srcComboBoxModel : destComboBoxModel);
-        comboBox.setVisible(true);
+        Host[] srcHosts = simulator.getUniqueSortedSourceHosts();
+        Host[] destHosts = simulator.getUniqueSortedDestHosts();
+
+        // Create independent models for each view mode so that their associated combo boxes can remember their state
+        srcComboBoxModel = new DefaultComboBoxModel<>(srcHosts);
+        destComboBoxModel = new DefaultComboBoxModel<>(destHosts);
+        browseComboBox.setModel(srcRadioButton.isSelected() ? srcComboBoxModel : destComboBoxModel);
+
+        flowSrcComboBox.setModel(new DefaultComboBoxModel<>(srcHosts));
+        flowDestComboBox.setModel(new DefaultComboBoxModel<>(destHosts));
     }
 
 }
