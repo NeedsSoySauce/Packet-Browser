@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -40,10 +41,14 @@ public class Simulator {
     }
 
     /**
-     * @param hostIPs an array of host ip addresses
      * @return an array of unique hosts sorted by their ip address
      */
-    private Host[] getUniqueSortedHosts(ArrayList<String> hostIPs) {
+    private Host[] getUniqueSortedHosts(boolean isSrcHost) {
+
+        Function<Packet, String> getHost = isSrcHost ? Packet::getSourceHost : Packet::getDestinationHost;
+        ArrayList<String> hostIPs = new ArrayList<>();
+        packets.forEach(packet -> hostIPs.add(getHost.apply(packet)));
+
         // Add all host ips to a HashSet to get the unique elements
         Set<String> ipsSet = new HashSet<>(hostIPs);
 
@@ -60,18 +65,14 @@ public class Simulator {
      * @return an array of unique source hosts sorted by their ip address
      */
     public Host[] getUniqueSortedSourceHosts() {
-        ArrayList<String> srcHostIPs = new ArrayList<>();
-        packets.forEach(packet -> srcHostIPs.add(packet.getSourceHost()));
-        return getUniqueSortedHosts(srcHostIPs);
+        return getUniqueSortedHosts(true);
     }
 
     /**
      * @return an array of unique destination hosts sorted by their ip address
      */
     public Host[] getUniqueSortedDestHosts() {
-        ArrayList<String> destHostIPs = new ArrayList<>();
-        packets.forEach(packet -> destHostIPs.add(packet.getDestinationHost()));
-        return getUniqueSortedHosts(destHostIPs);
+        return getUniqueSortedHosts(false);
     }
 
     /**

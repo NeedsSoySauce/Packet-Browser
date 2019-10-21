@@ -89,104 +89,15 @@ public class PacketPanel extends JPanel {
 
         add(topPanel);
         add(packetTablePanel);
-//
-//        // Setup menu and popup menu for copy and paste
-//        JPopupMenu popupMenu = new JPopupMenu();
-//        packetTable.setComponentPopupMenu(popupMenu);
-//        JMenu editMenu = new JMenu("Edit");
-//
-//        // Setup copy menu item
-//        JMenuItem copyMenuItem = new JMenuItem("Copy");
-//        JMenuItem copyPopupMenuItem = new JMenuItem("Copy");
-//
-//        Action copyAction = new AbstractAction("Copy") {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                int[] rows = packetTable.getSelectedRows();
-//                int[] cols = packetTable.getSelectedColumns();
-//
-//                StringBuilder stringBuilder = new StringBuilder();
-//                String lineSeparator = System.lineSeparator();
-//
-//                for (int row : rows) {
-//                    for (int col : cols) {
-//                        stringBuilder.append(packetTable.getValueAt(row, col));
-//                        stringBuilder.append("\t");
-//                    }
-//                    stringBuilder.append(lineSeparator);
-//                }
-//
-//                StringSelection selection = new StringSelection(stringBuilder.toString());
-//                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-//                clipboard.setContents(selection, null);
-//
-//            }
-//        };
-//        copyAction.setEnabled(false);
-//
-//        KeyStroke copyKeyStroke = KeyStroke.getKeyStroke("ctrl C");
-//        copyAction.putValue(Action.ACCELERATOR_KEY, copyKeyStroke);
-//        packetTable.getInputMap().put(copyKeyStroke, "copyAction");
-//        packetTable.getActionMap().put("copyAction", copyAction);
-//
-//        copyMenuItem.setAction(copyAction);
-//        copyPopupMenuItem.setAction(copyAction);
-//        popupMenu.add(copyPopupMenuItem);
-//        editMenu.add(copyMenuItem);
-//
-//        // Setup paste menu item
-//        JMenuItem pasteMenuItem = new JMenuItem("Paste");
-//        JMenuItem pastePopupMenuItem = new JMenuItem("Paste");
-//
-//        Action pasteAction = new AbstractAction("Paste") {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                // Paste clipboard contents into every selected cell (that's editable)
-//                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-//                Transferable data = clipboard.getContents(null);
-//                String content;
-//                try {
-//                    content = data.getTransferData(DataFlavor.stringFlavor).toString();
-//                } catch (UnsupportedFlavorException | IOException ex) {
-//                    return;
-//                }
-//
-//                int[] rows = packetTable.getSelectedRows();
-//                int[] cols = packetTable.getSelectedColumns();
-//
-//                for (int row : rows) {
-//                    for (int col : cols) {
-//                        if (packetTable.isCellEditable(row, col)) {
-//                            packetTable.setValueAt(content, row, col);
-//                        }
-//                    }
-//                }
-//            }
-//        };
-//        pasteAction.setEnabled(false);
-//
-//        KeyStroke pasteKeyStroke = KeyStroke.getKeyStroke("ctrl V");
-//        pasteAction.putValue(Action.ACCELERATOR_KEY, pasteKeyStroke);
-//        packetTable.getInputMap().put(pasteKeyStroke, "pasteAction");
-//        packetTable.getActionMap().put("pasteAction", pasteAction);
-//
-//        pastePopupMenuItem.setAction(pasteAction);
-//        pasteMenuItem.setAction(pasteAction);
-//        popupMenu.add(pastePopupMenuItem);
-//        editMenu.add(pasteMenuItem);
-//
-//        // Enable/disable edit options based on whether a cell is selected
-//        packetTable.getSelectionModel().addListSelectionListener(e -> {
-//            boolean isCellSelected = packetTable.getSelectedRow() != -1;
-//            copyAction.setEnabled(isCellSelected);
-//            pasteAction.setEnabled(isCellSelected);
-//        });
 
         openFile(file);
 
         setVisible(true);
     }
 
+    /**
+     * @return this panel's PacketTable
+     */
     public PacketTable getPacketTable() {
         return packetTable;
     }
