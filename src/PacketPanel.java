@@ -13,16 +13,32 @@ import java.util.List;
 
 public class PacketPanel extends JPanel {
 
-    private JComboBox<String> browseComboBox = new JComboBox<>();
-    private DefaultComboBoxModel<String> srcComboBoxModel = new DefaultComboBoxModel<>();
-    private DefaultComboBoxModel<String> destComboBoxModel = new DefaultComboBoxModel<>();
+    // Components for the packet browsing mode
+    private JComboBox<Object> browseComboBox = new JComboBox<>();
     private JRadioButton srcRadioButton = new JRadioButton("Source");
     private JRadioButton destRadioButton = new JRadioButton("Destination");
 
-    private JComboBox<String> flowSrcComboBox = new JComboBox<>();
-    private JComboBox<String> flowDestComboBox = new JComboBox<>();
+    // Components for the packet flow mode
+    private JComboBox<Object> flowSrcComboBox = new JComboBox<>();
+    private JComboBox<Object> flowDestComboBox = new JComboBox<>();
     private JRadioButton browseRadioButton = new JRadioButton("Browse");
     private JRadioButton flowRadioButton = new JRadioButton("Flow");
+
+    // Components for packet filtering selection
+    private JRadioButton ipFilterRadioButton = new JRadioButton("IP");
+    private JRadioButton portFilterRadioButton = new JRadioButton("Port");
+
+    // These models are duplicated for each filter mode so that their selection states are saved even if the user
+    // switches between filter modes
+    private DefaultComboBoxModel<Object> browseSrcIPComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<Object> browseDestIPComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<Object> flowSrcIPComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<Object> flowDestIPComboBoxModel = new DefaultComboBoxModel<>();
+
+    private DefaultComboBoxModel<Object> browseSrcPortComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<Object> browseDestPortComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<Object> flowSrcPortComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<Object> flowDestPortComboBoxModel = new DefaultComboBoxModel<>();
 
     private JFileChooser chooser = new JFileChooser();
     private File file;
@@ -78,9 +94,16 @@ public class PacketPanel extends JPanel {
         modePanel.add(flowRadioButton);
         topPanel.add(modePanel);
 
+        JPanel selectionModePanel = new JPanel();
+        selectionModePanel.setLayout(flowLayout);
+        selectionModePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "Filter by..."));
+        selectionModePanel.add(ipFilterRadioButton);
+        selectionModePanel.add(portFilterRadioButton);
+        topPanel.add(selectionModePanel);
+
         DisableablePanel browsePanel = new DisableablePanel();
         browsePanel.setLayout(flowLayout);
-        browsePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "View packets from..."));
+        browsePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "Browse packets from..."));
         browsePanel.add(srcRadioButton);
         browsePanel.add(destRadioButton);
         browsePanel.add(browseComboBox);
@@ -119,6 +142,24 @@ public class PacketPanel extends JPanel {
             browsePanel.setEnabled(isSelected);
         });
 
+        // Setup radio buttons to select the filter to select packets by
+        ButtonGroup filterButtonGroup = new ButtonGroup();
+        filterButtonGroup.add(ipFilterRadioButton);
+        filterButtonGroup.add(portFilterRadioButton);
+        ipFilterRadioButton.setSelected(true);
+
+        ipFilterRadioButton.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                setFilterMode(true);
+            }
+        });
+
+        portFilterRadioButton.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                setFilterMode(false);
+            }
+        });
+
         // Setup radio buttons to select whether we want to select packets based on their source or their destination
         ButtonGroup radioButtonGroup = new ButtonGroup();
         radioButtonGroup.add(srcRadioButton);
@@ -127,14 +168,14 @@ public class PacketPanel extends JPanel {
 
         srcRadioButton.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                browseComboBox.setModel(srcComboBoxModel);
+                browseComboBox.setModel(ipFilterRadioButton.isSelected() ? browseSrcIPComboBoxModel : browseSrcPortComboBoxModel);
             }
             displaySelectedHostData();
         });
 
         destRadioButton.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                browseComboBox.setModel(destComboBoxModel);
+                browseComboBox.setModel(ipFilterRadioButton.isSelected() ? browseDestIPComboBoxModel : browseDestPortComboBoxModel);
             }
             displaySelectedHostData();
         });
@@ -192,25 +233,77 @@ public class PacketPanel extends JPanel {
     }
 
     private void displaySelectedHostData() {
-        String hostIP = (String) browseComboBox.getSelectedItem();
-        if (hostIP != null) {
-            boolean isSrcHosts = srcRadioButton.isSelected();
-            Packet[] packets = simulator.getTableData(hostIP, isSrcHosts);
-            model = new PacketTableModel(packets, isSrcHosts);
-            model.addTableModelListener(tableModelListener);
-            packetTable.setModel(model);
+        Packet[] packets = null;
+        boolean isSrcHosts = srcRadioButton.isSelected();
+
+        if (ipFilterRadioButton.isSelected()) {
+            String hostIP = (String) browseComboBox.getSelectedItem();
+            if (hostIP != null) {
+                packets = simulator.getTableData(hostIP, isSrcHosts);
+            }
+        } else {
+            Integer hostPort = (Integer) browseComboBox.getSelectedItem();
+            if (hostPort != null) {
+                packets = simulator.getTableData(hostPort, isSrcHosts);
+            }
         }
+
+        if (packets != null) {
+            model = new PacketTableModel(packets, isSrcHosts);
+        } else {
+            // No valid packet data available so we display an empty table
+            model = new PacketTableModel(new Packet[0], isSrcHosts);
+        }
+
+        model.addTableModelListener(tableModelListener);
+        packetTable.setModel(model);
     }
 
     private void displaySelectedPacketFlowData() {
-        String srcIP = (String) flowSrcComboBox.getSelectedItem();
-        String destIP = (String) flowDestComboBox.getSelectedItem();
-        if (srcIP != null && destIP != null) {
-            Packet[] packets = simulator.getPacketFlowTableData(srcIP, destIP);
-            model = new PacketTableModel(packets, true);
-            model.addTableModelListener(tableModelListener);
-            packetTable.setModel(model);
+        Packet[] packets = null;
+
+        if (ipFilterRadioButton.isSelected()) {
+            String srcIP = (String) flowSrcComboBox.getSelectedItem();
+            String destIP = (String) flowDestComboBox.getSelectedItem();
+            if (srcIP != null && destIP != null) {
+                packets = simulator.getPacketFlowTableData(srcIP, destIP);
+            }
+        } else {
+            Integer srcPort = (Integer) flowSrcComboBox.getSelectedItem();
+            Integer destPort = (Integer) flowDestComboBox.getSelectedItem();
+            if (srcPort != null && destPort != null) {
+                packets = simulator.getPacketFlowTableData(srcPort, destPort);
+            }
         }
+
+        if (packets != null) {
+            model = new PacketTableModel(packets, true);
+        } else {
+            // No valid packet data available so we display an empty table
+            model = new PacketTableModel(new Packet[0], true);
+        }
+
+        model.addTableModelListener(tableModelListener);
+        packetTable.setModel(model);
+    }
+
+    private void setFilterMode(boolean filterByIP) {
+        if (filterByIP) {
+            browseComboBox.setModel(srcRadioButton.isSelected() ? browseSrcIPComboBoxModel : browseDestIPComboBoxModel);
+            flowSrcComboBox.setModel(flowSrcIPComboBoxModel);
+            flowDestComboBox.setModel(flowDestIPComboBoxModel);
+        } else {
+            browseComboBox.setModel(srcRadioButton.isSelected() ? browseSrcPortComboBoxModel : browseDestPortComboBoxModel);
+            flowSrcComboBox.setModel(flowSrcPortComboBoxModel);
+            flowDestComboBox.setModel(flowDestPortComboBoxModel);
+        }
+
+        if (browseRadioButton.isSelected()) {
+            displaySelectedHostData();
+        } else {
+            displaySelectedPacketFlowData();
+        }
+
     }
 
     private void loadComboBoxOptions() {
@@ -218,12 +311,20 @@ public class PacketPanel extends JPanel {
         String[] destIPs = simulator.getUniqueSortedDestHostIPs();
 
         // Create independent models for each view mode so that their associated combo boxes can remember their state
-        srcComboBoxModel = new DefaultComboBoxModel<>(srcIPs);
-        destComboBoxModel = new DefaultComboBoxModel<>(destIPs);
-        browseComboBox.setModel(srcRadioButton.isSelected() ? srcComboBoxModel : destComboBoxModel);
+        browseSrcIPComboBoxModel = new DefaultComboBoxModel<>(srcIPs);
+        browseDestIPComboBoxModel = new DefaultComboBoxModel<>(destIPs);
+        flowSrcIPComboBoxModel = new DefaultComboBoxModel<>(srcIPs);
+        flowDestIPComboBoxModel = new DefaultComboBoxModel<>(destIPs);
 
-        flowSrcComboBox.setModel(new DefaultComboBoxModel<>(srcIPs));
-        flowDestComboBox.setModel(new DefaultComboBoxModel<>(destIPs));
+        Integer[] srcPorts = simulator.getUniqueSortedSourceHostPorts();
+        Integer[] destPorts = simulator.getUniqueSortedDestHostPorts();
+
+        browseSrcPortComboBoxModel = new DefaultComboBoxModel<>(srcPorts);
+        browseDestPortComboBoxModel = new DefaultComboBoxModel<>(destPorts);
+        flowSrcPortComboBoxModel = new DefaultComboBoxModel<>(srcPorts);
+        flowDestPortComboBoxModel = new DefaultComboBoxModel<>(destPorts);
+
+        setFilterMode(ipFilterRadioButton.isSelected());
     }
 
 }

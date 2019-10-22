@@ -10,7 +10,9 @@ public class Simulator {
 
     private Pattern pattern = Pattern.compile("(?:2(?:[0-4]\\d|5[0-5])|1\\d{2}|[1-9]\\d|\\d)(?:\\.(?:2" +
             "(?:[0-4]\\d|5[0-5])|1\\d{2}|[1-9]\\d|\\d)){3}");
-    private ArrayList<Packet> validPackets = new ArrayList<>();
+
+    private ArrayList<Packet> validIPPackets = new ArrayList<>();
+    private ArrayList<Packet> validPortPackets = new ArrayList<>();
 
     /**
      * Creates a new Simulator
@@ -24,10 +26,11 @@ public class Simulator {
             for (int i = 0; i < lines.size(); i++) {
                 Packet packet = new Packet(lines.get(i));
                 packet.setLineIndex(i + 1);
-                boolean isValidSrcIP = pattern.matcher(packet.getSourceHost().getIp()).matches();
-                boolean isValidDestIP = pattern.matcher(packet.getDestinationHost().getIp()).matches();
-                if (isValidSrcIP && isValidDestIP) {
-                    validPackets.add(packet);
+                if (hasValidIPData(packet)) {
+                    validIPPackets.add(packet);
+                    if (hasValidPortData(packet)) {
+                        validPortPackets.add(packet);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -35,11 +38,20 @@ public class Simulator {
         }
     }
 
+    private boolean hasValidIPData(Packet packet) {
+        return pattern.matcher(packet.getSourceHost().getIp()).matches()
+                && pattern.matcher(packet.getDestinationHost().getIp()).matches();
+    }
+
+    private boolean hasValidPortData(Packet packet) {
+        return packet.getSourceHost().getPort() != null && packet.getDestinationHost().getPort() != null;
+    }
+
     /**
      * @return an ArrayList of valid Packet objects
      */
-    public ArrayList<Packet> getValidPackets() {
-        return validPackets;
+    public ArrayList<Packet> getValidIPPackets() {
+        return validIPPackets;
     }
 
     /**
@@ -49,7 +61,7 @@ public class Simulator {
 
         Function<Packet, Host> getHost = isSrcHost ? Packet::getSourceHost : Packet::getDestinationHost;
         ArrayList<String> hostIPs = new ArrayList<>();
-        validPackets.forEach(packet -> hostIPs.add(getHost.apply(packet).getIp()));
+        validIPPackets.forEach(packet -> hostIPs.add(getHost.apply(packet).getIp()));
 
         // Add all host ips to a HashSet to get the unique elements
         Set<String> ipsSet = new HashSet<>(hostIPs);
@@ -82,7 +94,7 @@ public class Simulator {
      * is true) match the given ip address.
      *
      * @param ip        the ip to get data for
-     * @param isSrcHost true to match the given ip against each validPackets source host, otherwise false to match
+     * @param isSrcHost true to match the given ip against each validIPPackets source host, otherwise false to match
      *                  against each packet's destination host
      * @return an array of matching packet objects
      */
@@ -95,7 +107,7 @@ public class Simulator {
             predicate = packet -> packet.getDestinationHost().getIp().equals(ip);
         }
 
-        return validPackets.stream().filter(predicate).toArray(Packet[]::new);
+        return validIPPackets.stream().filter(predicate).toArray(Packet[]::new);
     }
 
     /**
@@ -108,7 +120,7 @@ public class Simulator {
     public Packet[] getPacketFlowTableData(String srcIP, String destIP) {
         Predicate<Packet> predicate;
         predicate = packet -> packet.getSourceHost().getIp().equals(srcIP) && packet.getDestinationHost().getIp().equals(destIP);
-        return validPackets.stream().filter(predicate).toArray(Packet[]::new);
+        return validIPPackets.stream().filter(predicate).toArray(Packet[]::new);
     }
 
     /**
@@ -116,9 +128,10 @@ public class Simulator {
      */
     private Integer[] getUniqueSortedHostPorts(boolean isSrcHost) {
 
+        // Fix this so it only grabs packets with valid src and dest port values
         Function<Packet, Host> getHost = isSrcHost ? Packet::getSourceHost : Packet::getDestinationHost;
         ArrayList<Integer> hostPorts = new ArrayList<>();
-        validPackets.forEach(packet -> hostPorts.add(getHost.apply(packet).getPort()));
+        validPortPackets.forEach(packet -> hostPorts.add(getHost.apply(packet).getPort()));
 
         // Add all host ports to a HashSet to get the unique elements
         Set<Integer> portsSet = new HashSet<>(hostPorts);
@@ -147,7 +160,7 @@ public class Simulator {
      * is true) match the given port number.
      *
      * @param port      the port number to get data for
-     * @param isSrcHost true to match the given port number against each validPackets source port, otherwise false to
+     * @param isSrcHost true to match the given port number against each validIPPackets source port, otherwise false to
      *                  match against each packet's destination port
      * @return an array of matching packet objects
      */
@@ -159,8 +172,20 @@ public class Simulator {
         } else {
             predicate = packet -> packet.getDestinationHost().getPort().equals(port);
         }
+        return validPortPackets.stream().filter(predicate).toArray(Packet[]::new);
+    }
 
-        return validPackets.stream().filter(predicate).toArray(Packet[]::new);
+    /**
+     * Returns an array of valid Packet objects whose source and destination port numbers match the given port numbers.
+     *
+     * @param srcPort  the source port number
+     * @param destPort the destination port number
+     * @return an array of matching packet objects
+     */
+    public Packet[] getPacketFlowTableData(Integer srcPort, Integer destPort) {
+        Predicate<Packet> predicate;
+        predicate = packet -> packet.getSourceHost().getPort().equals(srcPort) && packet.getDestinationHost().getPort().equals(destPort);
+        return validPortPackets.stream().filter(predicate).toArray(Packet[]::new);
     }
 
 

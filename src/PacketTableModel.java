@@ -6,8 +6,6 @@ public class PacketTableModel extends AbstractTableModel {
     public static final String SRC_COL_NAME = "Source IP";
     public static final String DEST_COL_NAME = "Destination IP";
     public static final String SIZE_COL_NAME = "IP Packet Size";
-    public static final String SUM_ROW_NAME = "Sum";
-    public static final String MEAN_ROW_NAME = "Average";
 
     public static final int TIMESTAMP_COL = 0;
     public static final int SRC_COL = 1;
