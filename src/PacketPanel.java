@@ -14,6 +14,14 @@ import java.util.List;
 
 public class PacketPanel extends JPanel {
 
+    private static FlowLayout BORDERED_PANEL_LAYOUT = new FlowLayout();
+    private static Border BORDERED_PANEL_BORDER = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+
+    static {
+        BORDERED_PANEL_LAYOUT.setHgap(4);
+        BORDERED_PANEL_LAYOUT.setVgap(0);
+    }
+
     // Components for the packet browsing mode
     private JComboBox<Object> browseComboBox = new JComboBox<>();
     private JRadioButton srcRadioButton = new JRadioButton("Source");
@@ -35,7 +43,6 @@ public class PacketPanel extends JPanel {
     private DefaultComboBoxModel<Object> browseDestIPComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> flowSrcIPComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> flowDestIPComboBoxModel = new DefaultComboBoxModel<>();
-
     private DefaultComboBoxModel<Object> browseSrcPortComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> browseDestPortComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> flowSrcPortComboBoxModel = new DefaultComboBoxModel<>();
@@ -43,10 +50,8 @@ public class PacketPanel extends JPanel {
 
     private JFileChooser chooser = new JFileChooser();
     private File file;
-
     private Simulator simulator;
     private List<String> lines;
-
     private PacketTable packetTable = new PacketTable();
     private PacketTableModel model;
     private TableModelListener tableModelListener = e -> {
@@ -69,14 +74,6 @@ public class PacketPanel extends JPanel {
             // Failed to write lines
         }
     };
-
-    private static FlowLayout BORDERED_PANEL_LAYOUT = new FlowLayout();
-    private static Border BORDERED_PANEL_BORDER = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-
-    static {
-        BORDERED_PANEL_LAYOUT.setHgap(4);
-        BORDERED_PANEL_LAYOUT.setVgap(0);
-    }
 
     /**
      * Creates a new PacketPanel with it's related GUI elements
@@ -196,45 +193,6 @@ public class PacketPanel extends JPanel {
         openFile(file);
 
         setVisible(true);
-    }
-
-    static class BorderedPanel extends JPanel {
-        TitledBorder border;
-
-        public BorderedPanel() {
-            border = BorderFactory.createTitledBorder(BORDERED_PANEL_BORDER);
-            setLayout(BORDERED_PANEL_LAYOUT);
-            setBorder(border);
-        }
-
-        public BorderedPanel(String title) {
-            this();
-            border.setTitle(title);
-        }
-    }
-
-    static class DisableablePanel extends BorderedPanel {
-
-        public DisableablePanel() {
-            super();
-        }
-
-        public DisableablePanel(String title) {
-            super(title);
-        }
-
-        @Override
-        public void setEnabled(boolean enabled) {
-            super.setEnabled(enabled);
-
-            // Recursively disable all components in this panel
-            for (Component component : getComponents()) {
-                if (component instanceof DisableablePanel) {
-                    component.setEnabled(enabled);
-                }
-                component.setEnabled(enabled);
-            }
-        }
     }
 
     /**
@@ -361,6 +319,61 @@ public class PacketPanel extends JPanel {
         flowDestPortComboBoxModel = new DefaultComboBoxModel<>(destPorts);
 
         setFilterMode(ipFilterRadioButton.isSelected());
+    }
+
+    static class BorderedPanel extends JPanel {
+        TitledBorder border;
+
+        /**
+         * Creates a new BorderedPanel with no title
+         */
+        public BorderedPanel() {
+            border = BorderFactory.createTitledBorder(BORDERED_PANEL_BORDER);
+            setLayout(BORDERED_PANEL_LAYOUT);
+            setBorder(border);
+        }
+
+        /**
+         * Creates a new BorderedPanel with the given title
+         *
+         * @param title this panel's title
+         */
+        public BorderedPanel(String title) {
+            this();
+            border.setTitle(title);
+        }
+    }
+
+    static class DisableablePanel extends BorderedPanel {
+
+        /**
+         * Creates a new DisableablePanel with no title
+         */
+        public DisableablePanel() {
+            super();
+        }
+
+        /**
+         * Creates a new DisableablePanel with the given title
+         *
+         * @param title this panel's title
+         */
+        public DisableablePanel(String title) {
+            super(title);
+        }
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            super.setEnabled(enabled);
+
+            // Recursively disable all components in this panel
+            for (Component component : getComponents()) {
+                if (component instanceof DisableablePanel) {
+                    component.setEnabled(enabled);
+                }
+                component.setEnabled(enabled);
+            }
+        }
     }
 
 }
