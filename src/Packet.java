@@ -49,33 +49,31 @@ public class Packet {
     /**
      * @return this packet's source host's ip
      */
-    public String getSourceHost() {
-        return srcHost.getIp();
+    public Host getSourceHost() {
+        return srcHost;
     }
 
     /**
-     * @param src a string that consists of four decimal numbers between 0 and 255 separated by dots
+     * @param host this packets new host
      */
-    public void setSourceHost(String src) {
-        srcHost.setIp(src);
-        data[2] = src;
+    public void setSourceHost(Host host) {
+        srcHost = host;
+        data[2] = host.getIp();
     }
 
     /**
      * @return this packet's destination host's ip
      */
-    public String getDestinationHost() {
-        return destHost.getIp();
+    public Host getDestinationHost() {
+        return destHost;
     }
 
-
-
     /**
-     * @param dest a string that consists of four decimal numbers between 0 and 255 separated by dots
+     * @param host this packets new host
      */
-    public void setDestinationHost(String dest) {
-        destHost.setIp(dest);
-        data[3] = dest;
+    public void setDestinationHost(Host host) {
+        destHost = host;
+        data[3] = host.getIp();
     }
 
     /**

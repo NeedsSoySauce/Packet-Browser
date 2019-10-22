@@ -139,13 +139,13 @@ public class PacketPanel extends JPanel {
             displaySelectedHostData();
         });
 
-        // Setup a combo box to select IPs from based on the selected radio button (if in
+        // Setup a combo box to select IPs from based on the selected radio button
         browseComboBox.addActionListener(e -> displaySelectedHostData());
         flowSrcComboBox.addActionListener(e -> displaySelectedPacketFlowData());
         flowDestComboBox.addActionListener(e -> displaySelectedPacketFlowData());
 
 
-        // Setup table
+        // Setup packet table
         JPanel packetTablePanel = new JPanel();
         packetTablePanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 8, 8));
         packetTablePanel.setLayout(new BorderLayout());

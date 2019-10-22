@@ -46,13 +46,10 @@ public class PacketTableModel extends AbstractTableModel {
         data = new Object[packets.length + 2][4];
         for (int i = 0; i < packets.length; i++) {
             data[i][TIMESTAMP_COL] = packets[i].getTimeStamp();
-            data[i][srcCol] = packets[i].getSourceHost();
-            data[i][destCol] = packets[i].getDestinationHost();
+            data[i][srcCol] = packets[i].getSourceHost().getIp();
+            data[i][destCol] = packets[i].getDestinationHost().getIp();
             data[i][SIZE_COL] = packets[i].getIpPacketSize();
         }
-
-        data[data.length - 2][SIZE_COL - 1] = SUM_ROW_NAME;
-        data[data.length - 1][SIZE_COL - 1] = MEAN_ROW_NAME;
 
         updateSumAndMean();
     }
@@ -81,9 +78,7 @@ public class PacketTableModel extends AbstractTableModel {
                 updateSumAndMean();
                 fireTableRowsUpdated(data.length - 2, data.length - 1);
             }
-
         }
-
     }
 
     private void updateSumAndMean() {
@@ -92,7 +87,7 @@ public class PacketTableModel extends AbstractTableModel {
             sum += packet.getIpPacketSize();
         }
         data[data.length - 2][SIZE_COL] = sum;
-        data[data.length - 1][SIZE_COL] = (double) sum / packets.length;
+        data[data.length - 1][SIZE_COL] = packets.length > 0 ? (double) sum / packets.length : 0;
     }
 
     @Override

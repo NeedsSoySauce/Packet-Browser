@@ -24,7 +24,9 @@ public class Simulator {
             for (int i = 0; i < lines.size(); i++) {
                 Packet packet = new Packet(lines.get(i));
                 packet.setLineIndex(i + 1);
-                if (pattern.matcher(packet.getSourceHost()).matches() && pattern.matcher(packet.getDestinationHost()).matches()) {
+                boolean isValidSrcIP = pattern.matcher(packet.getSourceHost().getIp()).matches();
+                boolean isValidDestIP = pattern.matcher(packet.getDestinationHost().getIp()).matches();
+                if (isValidSrcIP && isValidDestIP) {
                     packets.add(packet);
                 }
             }
@@ -45,9 +47,9 @@ public class Simulator {
      */
     private Host[] getUniqueSortedHosts(boolean isSrcHost) {
 
-        Function<Packet, String> getHost = isSrcHost ? Packet::getSourceHost : Packet::getDestinationHost;
+        Function<Packet, Host> getHost = isSrcHost ? Packet::getSourceHost : Packet::getDestinationHost;
         ArrayList<String> hostIPs = new ArrayList<>();
-        packets.forEach(packet -> hostIPs.add(getHost.apply(packet)));
+        packets.forEach(packet -> hostIPs.add(getHost.apply(packet).getIp()));
 
         // Add all host ips to a HashSet to get the unique elements
         Set<String> ipsSet = new HashSet<>(hostIPs);
@@ -78,6 +80,7 @@ public class Simulator {
     /**
      * Returns an array of valid Packet objects whose source or destination ip addresses (depending on whether isSrcHost
      * is true) match the given ip address.
+     *
      * @param ip        the ip to get data for
      * @param isSrcHost true to match the given ip against each packets source host, otherwise false to match against
      *                  each packet's destination host
@@ -87,9 +90,9 @@ public class Simulator {
         Predicate<Packet> predicate;
 
         if (isSrcHost) {
-            predicate = packet -> packet.getSourceHost().equals(ip);
+            predicate = packet -> packet.getSourceHost().getIp().equals(ip);
         } else {
-            predicate = packet -> packet.getDestinationHost().equals(ip);
+            predicate = packet -> packet.getDestinationHost().getIp().equals(ip);
         }
 
         return packets.stream().filter(predicate).toArray(Packet[]::new);
@@ -104,7 +107,7 @@ public class Simulator {
      */
     public Packet[] getPacketFlowTableData(String srcIP, String destIP) {
         Predicate<Packet> predicate;
-        predicate = packet -> packet.getSourceHost().equals(srcIP) && packet.getDestinationHost().equals(destIP);
+        predicate = packet -> packet.getSourceHost().getIp().equals(srcIP) && packet.getDestinationHost().getIp().equals(destIP);
         return packets.stream().filter(predicate).toArray(Packet[]::new);
     }
 
