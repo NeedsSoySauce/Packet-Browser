@@ -41,7 +41,11 @@ public class PacketPanel extends JPanel {
 
         // Write changes to each packet to the file
         Packet packet = model.getPacketAt(e.getFirstRow());
-        lines.set(packet.getLineIndex() - 1, packet.getTabDelimitedData());
+        Integer lineIndex = packet.getLineIndex();
+        if (lineIndex == null) {
+            return;
+        }
+        lines.set(lineIndex - 1, packet.getTabDelimitedData());
         try {
             Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
         } catch (IOException err) {

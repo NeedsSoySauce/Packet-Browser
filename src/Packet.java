@@ -3,8 +3,8 @@ import java.util.Arrays;
 public class Packet {
 
     private Host srcHost, destHost;
-    private double time;
-    private int size, lineIndex;
+    private Double time;
+    private Integer size, lineIndex;
     private String[] data;
 
     /**
@@ -29,11 +29,11 @@ public class Packet {
         }
 
         this.data = data;
-        lineIndex = data[0].isEmpty() ? 0 : Integer.parseInt(data[0]);
-        srcHost = new Host(data[2]);
-        destHost = new Host(data[4]);
-        time = data[1].isEmpty() ? 0 : Double.parseDouble(data[1]);
-        size = data[7].isEmpty() ? 0 : Integer.parseInt(data[7]);
+        lineIndex = data[0].isEmpty() ? null : Integer.parseInt(data[0]);
+        srcHost = new Host(data[2], data[3].isEmpty() ? null : Integer.parseInt(data[3]));
+        destHost = new Host(data[4], data[5].isEmpty() ? null : Integer.parseInt(data[5]));
+        time = data[1].isEmpty() ? null : Double.parseDouble(data[1]);
+        size = data[7].isEmpty() ? null : Integer.parseInt(data[7]);
     }
 
     /**
@@ -67,6 +67,8 @@ public class Packet {
     public String getDestinationHost() {
         return destHost.getIp();
     }
+
+
 
     /**
      * @param dest a string that consists of four decimal numbers between 0 and 255 separated by dots
