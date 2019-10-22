@@ -10,7 +10,7 @@ public class Simulator {
 
     private Pattern pattern = Pattern.compile("(?:2(?:[0-4]\\d|5[0-5])|1\\d{2}|[1-9]\\d|\\d)(?:\\.(?:2" +
             "(?:[0-4]\\d|5[0-5])|1\\d{2}|[1-9]\\d|\\d)){3}");
-    private ArrayList<Packet> packets = new ArrayList<>();
+    private ArrayList<Packet> validPackets = new ArrayList<>();
 
     /**
      * Creates a new Simulator
@@ -27,7 +27,7 @@ public class Simulator {
                 boolean isValidSrcIP = pattern.matcher(packet.getSourceHost().getIp()).matches();
                 boolean isValidDestIP = pattern.matcher(packet.getDestinationHost().getIp()).matches();
                 if (isValidSrcIP && isValidDestIP) {
-                    packets.add(packet);
+                    validPackets.add(packet);
                 }
             }
         } catch (IOException e) {
@@ -39,17 +39,17 @@ public class Simulator {
      * @return an ArrayList of valid Packet objects
      */
     public ArrayList<Packet> getValidPackets() {
-        return packets;
+        return validPackets;
     }
 
     /**
      * @return an array of unique hosts sorted by their ip address
      */
-    private Host[] getUniqueSortedHosts(boolean isSrcHost) {
+    private String[] getUniqueSortedHostIPs(boolean isSrcHost) {
 
         Function<Packet, Host> getHost = isSrcHost ? Packet::getSourceHost : Packet::getDestinationHost;
         ArrayList<String> hostIPs = new ArrayList<>();
-        packets.forEach(packet -> hostIPs.add(getHost.apply(packet).getIp()));
+        validPackets.forEach(packet -> hostIPs.add(getHost.apply(packet).getIp()));
 
         // Add all host ips to a HashSet to get the unique elements
         Set<String> ipsSet = new HashSet<>(hostIPs);
@@ -60,21 +60,21 @@ public class Simulator {
 
         Host[] uniqueHosts = hostArrayList.toArray(new Host[0]);
         Arrays.sort(uniqueHosts);
-        return uniqueHosts;
+        return Arrays.stream(uniqueHosts).map(Host::getIp).toArray(String[]::new);
     }
 
     /**
      * @return an array of unique source hosts sorted by their ip address
      */
-    public Host[] getUniqueSortedSourceHosts() {
-        return getUniqueSortedHosts(true);
+    public String[] getUniqueSortedSourceHostIPs() {
+        return getUniqueSortedHostIPs(true);
     }
 
     /**
      * @return an array of unique destination hosts sorted by their ip address
      */
-    public Host[] getUniqueSortedDestHosts() {
-        return getUniqueSortedHosts(false);
+    public String[] getUniqueSortedDestHostIPs() {
+        return getUniqueSortedHostIPs(false);
     }
 
     /**
@@ -82,8 +82,8 @@ public class Simulator {
      * is true) match the given ip address.
      *
      * @param ip        the ip to get data for
-     * @param isSrcHost true to match the given ip against each packets source host, otherwise false to match against
-     *                  each packet's destination host
+     * @param isSrcHost true to match the given ip against each validPackets source host, otherwise false to match
+     *                  against each packet's destination host
      * @return an array of matching packet objects
      */
     public Packet[] getTableData(String ip, boolean isSrcHost) {
@@ -95,7 +95,7 @@ public class Simulator {
             predicate = packet -> packet.getDestinationHost().getIp().equals(ip);
         }
 
-        return packets.stream().filter(predicate).toArray(Packet[]::new);
+        return validPackets.stream().filter(predicate).toArray(Packet[]::new);
     }
 
     /**
@@ -108,8 +108,61 @@ public class Simulator {
     public Packet[] getPacketFlowTableData(String srcIP, String destIP) {
         Predicate<Packet> predicate;
         predicate = packet -> packet.getSourceHost().getIp().equals(srcIP) && packet.getDestinationHost().getIp().equals(destIP);
-        return packets.stream().filter(predicate).toArray(Packet[]::new);
+        return validPackets.stream().filter(predicate).toArray(Packet[]::new);
     }
+
+    /**
+     * @return an array of unique sorted port numbers
+     */
+    private Integer[] getUniqueSortedHostPorts(boolean isSrcHost) {
+
+        Function<Packet, Host> getHost = isSrcHost ? Packet::getSourceHost : Packet::getDestinationHost;
+        ArrayList<Integer> hostPorts = new ArrayList<>();
+        validPackets.forEach(packet -> hostPorts.add(getHost.apply(packet).getPort()));
+
+        // Add all host ports to a HashSet to get the unique elements
+        Set<Integer> portsSet = new HashSet<>(hostPorts);
+
+        Integer[] uniquePorts = portsSet.toArray(new Integer[0]);
+        Arrays.sort(uniquePorts);
+        return uniquePorts;
+    }
+
+    /**
+     * @return an array of unique sorted source port numbers
+     */
+    public Integer[] getUniqueSortedSourceHostPorts() {
+        return getUniqueSortedHostPorts(true);
+    }
+
+    /**
+     * @return an array of unique sorted destination port numbers
+     */
+    public Integer[] getUniqueSortedDestHostPorts() {
+        return getUniqueSortedHostPorts(false);
+    }
+
+    /**
+     * Returns an array of valid Packet objects whose source or destination port numbers (depending on whether isSrcHost
+     * is true) match the given port number.
+     *
+     * @param port      the port number to get data for
+     * @param isSrcHost true to match the given port number against each validPackets source port, otherwise false to
+     *                  match against each packet's destination port
+     * @return an array of matching packet objects
+     */
+    public Packet[] getTableData(Integer port, boolean isSrcHost) {
+        Predicate<Packet> predicate;
+
+        if (isSrcHost) {
+            predicate = packet -> packet.getSourceHost().getPort().equals(port);
+        } else {
+            predicate = packet -> packet.getDestinationHost().getPort().equals(port);
+        }
+
+        return validPackets.stream().filter(predicate).toArray(Packet[]::new);
+    }
+
 
 }
 

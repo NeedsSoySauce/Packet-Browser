@@ -13,14 +13,14 @@ import java.util.List;
 
 public class PacketPanel extends JPanel {
 
-    private JComboBox<Host> browseComboBox = new JComboBox<>();
-    private DefaultComboBoxModel<Host> srcComboBoxModel = new DefaultComboBoxModel<>();
-    private DefaultComboBoxModel<Host> destComboBoxModel = new DefaultComboBoxModel<>();
+    private JComboBox<String> browseComboBox = new JComboBox<>();
+    private DefaultComboBoxModel<String> srcComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<String> destComboBoxModel = new DefaultComboBoxModel<>();
     private JRadioButton srcRadioButton = new JRadioButton("Source");
     private JRadioButton destRadioButton = new JRadioButton("Destination");
 
-    private JComboBox<Host> flowSrcComboBox = new JComboBox<>();
-    private JComboBox<Host> flowDestComboBox = new JComboBox<>();
+    private JComboBox<String> flowSrcComboBox = new JComboBox<>();
+    private JComboBox<String> flowDestComboBox = new JComboBox<>();
     private JRadioButton browseRadioButton = new JRadioButton("Browse");
     private JRadioButton flowRadioButton = new JRadioButton("Flow");
 
@@ -192,10 +192,10 @@ public class PacketPanel extends JPanel {
     }
 
     private void displaySelectedHostData() {
-        Host host = (Host) browseComboBox.getSelectedItem();
-        if (host != null) {
+        String hostIP = (String) browseComboBox.getSelectedItem();
+        if (hostIP != null) {
             boolean isSrcHosts = srcRadioButton.isSelected();
-            Packet[] packets = simulator.getTableData(host.toString(), isSrcHosts);
+            Packet[] packets = simulator.getTableData(hostIP, isSrcHosts);
             model = new PacketTableModel(packets, isSrcHosts);
             model.addTableModelListener(tableModelListener);
             packetTable.setModel(model);
@@ -203,10 +203,10 @@ public class PacketPanel extends JPanel {
     }
 
     private void displaySelectedPacketFlowData() {
-        Host srcHost = (Host) flowSrcComboBox.getSelectedItem();
-        Host destHost = (Host) flowDestComboBox.getSelectedItem();
-        if (srcHost != null && destHost != null) {
-            Packet[] packets = simulator.getPacketFlowTableData(srcHost.toString(), destHost.toString());
+        String srcIP = (String) flowSrcComboBox.getSelectedItem();
+        String destIP = (String) flowDestComboBox.getSelectedItem();
+        if (srcIP != null && destIP != null) {
+            Packet[] packets = simulator.getPacketFlowTableData(srcIP, destIP);
             model = new PacketTableModel(packets, true);
             model.addTableModelListener(tableModelListener);
             packetTable.setModel(model);
@@ -214,16 +214,16 @@ public class PacketPanel extends JPanel {
     }
 
     private void loadComboBoxOptions() {
-        Host[] srcHosts = simulator.getUniqueSortedSourceHosts();
-        Host[] destHosts = simulator.getUniqueSortedDestHosts();
+        String[] srcIPs = simulator.getUniqueSortedSourceHostIPs();
+        String[] destIPs = simulator.getUniqueSortedDestHostIPs();
 
         // Create independent models for each view mode so that their associated combo boxes can remember their state
-        srcComboBoxModel = new DefaultComboBoxModel<>(srcHosts);
-        destComboBoxModel = new DefaultComboBoxModel<>(destHosts);
+        srcComboBoxModel = new DefaultComboBoxModel<>(srcIPs);
+        destComboBoxModel = new DefaultComboBoxModel<>(destIPs);
         browseComboBox.setModel(srcRadioButton.isSelected() ? srcComboBoxModel : destComboBoxModel);
 
-        flowSrcComboBox.setModel(new DefaultComboBoxModel<>(srcHosts));
-        flowDestComboBox.setModel(new DefaultComboBoxModel<>(destHosts));
+        flowSrcComboBox.setModel(new DefaultComboBoxModel<>(srcIPs));
+        flowDestComboBox.setModel(new DefaultComboBoxModel<>(destIPs));
     }
 
 }
