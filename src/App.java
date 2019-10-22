@@ -20,7 +20,11 @@ public class App extends JFrame {
     private JPopupMenu popupMenu = new JPopupMenu();
     private JTabbedPane tabbedPane = new JTabbedPane();
     private PacketTable packetTable;
-    private ListSelectionListener copyPasteListener = e -> updateCopyPasteActions();
+    private ListSelectionListener copyPasteListener = e -> {
+        if (!e.getValueIsAdjusting()) {
+            updateCopyPasteActions();
+        }
+    };
     private JFileChooser chooser = new JFileChooser();
 
     /**
@@ -164,8 +168,8 @@ public class App extends JFrame {
         int[] rows = packetTable.getSelectedRows();
         int[] cols = packetTable.getSelectedColumns();
 
-        for (int row : rows) {
-            for (int col : cols) {
+        for (int col : cols) { // Faster to check along columns than rows in this application
+            for (int row : rows) {
                 if (packetTable.isCellEditable(row, col)) {
                     return true;
                 }
@@ -199,6 +203,7 @@ public class App extends JFrame {
             // Setup listeners to enable or disable popup menu items based on what's selected
             packetTable = packetPanel.getPacketTable();
             packetTable.getSelectionModel().addListSelectionListener(copyPasteListener);
+            packetTable.getColumnModel().getSelectionModel().addListSelectionListener(copyPasteListener);
             updateCopyPasteActions();
 
             // Set shortcuts for copy and paste

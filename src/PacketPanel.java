@@ -28,7 +28,7 @@ public class PacketPanel extends JPanel {
     private JRadioButton ipFilterRadioButton = new JRadioButton("IP");
     private JRadioButton portFilterRadioButton = new JRadioButton("Port");
 
-    // These models are duplicated for each filter mode so that their selection states are saved even if the user
+    // These models are duplicated for each filter mode so that their selection states are saved if the user
     // switches between filter modes
     private DefaultComboBoxModel<Object> browseSrcIPComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> browseDestIPComboBoxModel = new DefaultComboBoxModel<>();
