@@ -342,6 +342,17 @@ public class PacketPanel extends JPanel {
             this();
             border.setTitle(title);
         }
+
+        @Override
+        public Dimension getPreferredSize() {
+            // By default the size of a panel's border is not taken into account when determining it's preferred size
+            // so this ensures that the text on the TitledBorder is not truncated if the contents are shorter than it
+            Dimension dim = super.getPreferredSize();
+            dim.setSize(Math.max(dim.getWidth(),
+                    border.getBorderInsets(this).right + border.getMinimumSize(this).getWidth()),
+                    dim.getHeight());
+            return dim;
+        }
     }
 
     static class DisableablePanel extends BorderedPanel {
