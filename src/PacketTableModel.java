@@ -4,21 +4,32 @@ public class PacketTableModel extends AbstractTableModel {
 
     public static final String TIMESTAMP_COL_NAME = "Timestamp";
     public static final String SRC_COL_NAME = "Source IP";
+    public static final String SRC_PORT_COL_NAME = "Source Port";
     public static final String DEST_COL_NAME = "Destination IP";
+    public static final String DEST_PORT_COL_NAME = "Destination Port";
     public static final String SIZE_COL_NAME = "IP Packet Size";
 
     public static final int TIMESTAMP_COL = 0;
     public static final int SRC_COL = 1;
-    public static final int DEST_COL = 2;
-    public static final int SIZE_COL = 3;
+    public static final int SRC_PORT_COL = 2;
+    public static final int DEST_COL = 3;
+    public static final int DEST_PORT_COL = 4;
+    public static final int SIZE_COL = 5;
 
-    private String[] columnNames = new String[4];
+    private int timestampCol = TIMESTAMP_COL;
+    private int srcCol = SRC_COL;
+    private int srcPortCol = SRC_PORT_COL;
+    private int destCol = DEST_COL;
+    private int destPortCol = DEST_PORT_COL;
+    private int sizeCol = SIZE_COL;
+
+    private String[] columnNames = new String[6];
     private Object[][] data;
     private Packet[] packets;
 
     /**
-     * Creates a new PacketTableModel. If isSrcHosts is true, the "Source IP" column will precede the "Destination
-     * IP" column.
+     * Creates a new PacketTableModel. If isSrcHosts is true, the "Source IP" column will precede the "Destination IP"
+     * column.
      *
      * @param packets    the packets to be displayed in a table
      * @param isSrcHosts true if the packets are from the source, and false if they're from the destination
@@ -27,26 +38,32 @@ public class PacketTableModel extends AbstractTableModel {
 
         columnNames[TIMESTAMP_COL] = TIMESTAMP_COL_NAME;
         columnNames[SRC_COL] = SRC_COL_NAME;
+        columnNames[SRC_PORT_COL] = SRC_PORT_COL_NAME;
         columnNames[DEST_COL] = DEST_COL_NAME;
+        columnNames[DEST_PORT_COL] = DEST_PORT_COL_NAME;
         columnNames[SIZE_COL] = SIZE_COL_NAME;
 
-        int srcCol = SRC_COL;
-        int destCol = DEST_COL;
         if (!isSrcHosts) {
-            int temp = srcCol;
-            srcCol = destCol;
-            destCol = temp;
+            srcCol = DEST_COL;
+            destCol = SRC_COL;
             columnNames[srcCol] = SRC_COL_NAME;
             columnNames[destCol] = DEST_COL_NAME;
+
+            srcPortCol = DEST_PORT_COL;
+            destPortCol = SRC_PORT_COL;
+            columnNames[srcPortCol] = SRC_PORT_COL_NAME;
+            columnNames[destPortCol] = DEST_PORT_COL_NAME;
         }
 
         this.packets = packets;
-        data = new Object[packets.length + 2][4];
+        data = new Object[packets.length + 2][columnNames.length];
         for (int i = 0; i < packets.length; i++) {
-            data[i][TIMESTAMP_COL] = packets[i].getTimeStamp();
+            data[i][timestampCol] = packets[i].getTimeStamp();
             data[i][srcCol] = packets[i].getSourceHost().getIp();
+            data[i][srcPortCol] = packets[i].getSourceHost().getPort();
             data[i][destCol] = packets[i].getDestinationHost().getIp();
-            data[i][SIZE_COL] = packets[i].getIpPacketSize();
+            data[i][destPortCol] = packets[i].getDestinationHost().getPort();
+            data[i][sizeCol] = packets[i].getIpPacketSize();
         }
 
         updateSumAndMean();
@@ -72,7 +89,7 @@ public class PacketTableModel extends AbstractTableModel {
             fireTableCellUpdated(rowIndex, columnIndex);
 
             // Update the sum and mean values if a packet size has been changed
-            if (columnIndex == SIZE_COL) {
+            if (columnIndex == sizeCol) {
                 updateSumAndMean();
                 fireTableRowsUpdated(data.length - 2, data.length - 1);
             }
@@ -84,8 +101,8 @@ public class PacketTableModel extends AbstractTableModel {
         for (Packet packet : packets) {
             sum += packet.getIpPacketSize();
         }
-        data[data.length - 2][SIZE_COL] = sum;
-        data[data.length - 1][SIZE_COL] = packets.length > 0 ? (double) sum / packets.length : 0;
+        data[data.length - 2][sizeCol] = sum;
+        data[data.length - 1][sizeCol] = packets.length > 0 ? (double) sum / packets.length : 0;
     }
 
     @Override
@@ -110,7 +127,7 @@ public class PacketTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return rowIndex < data.length - 2 && columnIndex == SIZE_COL;
+        return rowIndex < data.length - 2 && columnIndex == sizeCol;
     }
 
     /**
