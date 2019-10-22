@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -69,49 +70,45 @@ public class PacketPanel extends JPanel {
         }
     };
 
+    private static FlowLayout BORDERED_PANEL_LAYOUT = new FlowLayout();
+    private static Border BORDERED_PANEL_BORDER = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+
+    static {
+        BORDERED_PANEL_LAYOUT.setHgap(4);
+        BORDERED_PANEL_LAYOUT.setVgap(0);
+    }
+
     /**
      * Creates a new PacketPanel with it's related GUI elements
      */
     public PacketPanel(File file) {
         this.file = file;
 
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         chooser.setFileFilter(new FileNameExtensionFilter("txt files", "txt"));
         chooser.setDialogTitle("Select a file...");
 
         JPanel topPanel = new JPanel();
-        Border etchedBorder = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+        topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        FlowLayout flowLayout = new FlowLayout();
-        flowLayout.setHgap(4);
-        flowLayout.setVgap(0);
-
-        JPanel modePanel = new JPanel();
-        modePanel.setLayout(flowLayout);
-        modePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "Mode"));
-        modePanel.add(browseRadioButton);
-        modePanel.add(flowRadioButton);
-        topPanel.add(modePanel);
-
-        JPanel selectionModePanel = new JPanel();
-        selectionModePanel.setLayout(flowLayout);
-        selectionModePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "Filter by..."));
+        BorderedPanel selectionModePanel = new BorderedPanel("Filter by...");
         selectionModePanel.add(ipFilterRadioButton);
         selectionModePanel.add(portFilterRadioButton);
         topPanel.add(selectionModePanel);
 
-        DisableablePanel browsePanel = new DisableablePanel();
-        browsePanel.setLayout(flowLayout);
-        browsePanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "Browse packets from..."));
+        BorderedPanel modePanel = new BorderedPanel("Mode");
+        modePanel.add(browseRadioButton);
+        modePanel.add(flowRadioButton);
+        topPanel.add(modePanel);
+
+        DisableablePanel browsePanel = new DisableablePanel("Browse packets from...");
         browsePanel.add(srcRadioButton);
         browsePanel.add(destRadioButton);
         browsePanel.add(browseComboBox);
         topPanel.add(browsePanel);
 
-        DisableablePanel flowPanel = new DisableablePanel();
-        flowPanel.setLayout(flowLayout);
-        flowPanel.setBorder(BorderFactory.createTitledBorder(etchedBorder, "View packet flow from..."));
+        DisableablePanel flowPanel = new DisableablePanel("View packet flow from...");
         flowPanel.add(flowSrcComboBox);
         flowPanel.add(new JLabel("to"));
         flowPanel.add(flowDestComboBox);
@@ -199,6 +196,45 @@ public class PacketPanel extends JPanel {
         openFile(file);
 
         setVisible(true);
+    }
+
+    static class BorderedPanel extends JPanel {
+        TitledBorder border;
+
+        public BorderedPanel() {
+            border = BorderFactory.createTitledBorder(BORDERED_PANEL_BORDER);
+            setLayout(BORDERED_PANEL_LAYOUT);
+            setBorder(border);
+        }
+
+        public BorderedPanel(String title) {
+            this();
+            border.setTitle(title);
+        }
+    }
+
+    static class DisableablePanel extends BorderedPanel {
+
+        public DisableablePanel() {
+            super();
+        }
+
+        public DisableablePanel(String title) {
+            super(title);
+        }
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            super.setEnabled(enabled);
+
+            // Recursively disable all components in this panel
+            for (Component component : getComponents()) {
+                if (component instanceof DisableablePanel) {
+                    component.setEnabled(enabled);
+                }
+                component.setEnabled(enabled);
+            }
+        }
     }
 
     /**
