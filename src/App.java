@@ -5,6 +5,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.print.PrinterException;
@@ -157,7 +159,56 @@ public class App extends JFrame {
         pasteMenuItem.setAction(pasteAction);
         editMenu.add(pasteMenuItem);
 
-        // Whenever the selected tab changes, update the listeners on the current and previous tab
+
+        // Setup a menu to change the columns that are displayed in the packetTable
+        JMenu viewMenu = new JMenu("View");
+        viewMenu.setMnemonic(KeyEvent.VK_V);
+        menuBar.add(viewMenu);
+        JCheckBoxMenuItem timestampMenuItem = new JCheckBoxMenuItem("Timestamp", true);
+        JCheckBoxMenuItem srcIPMenuItem = new JCheckBoxMenuItem("Source IP", true);
+        JCheckBoxMenuItem srcPortMenuItem = new JCheckBoxMenuItem("Source Port", true);
+        JCheckBoxMenuItem destIPMenuItem = new JCheckBoxMenuItem("Destination IP", true);
+        JCheckBoxMenuItem destPortMenuItem = new JCheckBoxMenuItem("Destination Port", true);
+        JCheckBoxMenuItem ipPacketSizeMenuItem = new JCheckBoxMenuItem("IP Packet Size", true);
+
+        ItemListener viewItemListener = e -> {
+            String columnName;
+            if (e.getSource().equals(timestampMenuItem)) {
+                columnName = PacketTableColumns.TIMESTAMP_COL_NAME;
+            } else if (e.getSource().equals(srcIPMenuItem)) {
+                columnName = PacketTableColumns.SRC_COL_NAME;
+            } else if (e.getSource().equals(srcPortMenuItem)) {
+                columnName = PacketTableColumns.SRC_PORT_COL_NAME;
+            } else if (e.getSource().equals(destIPMenuItem)) {
+                columnName = PacketTableColumns.DEST_COL_NAME;
+            } else if (e.getSource().equals(destPortMenuItem)) {
+                columnName = PacketTableColumns.DEST_PORT_COL_NAME;
+            } else if (e.getSource().equals(ipPacketSizeMenuItem)) {
+                columnName = PacketTableColumns.TIMESTAMP_COL_NAME;
+            } else {
+                return;
+            }
+            PacketTable.setColumnVisibility(columnName, e.getStateChange() == ItemEvent.SELECTED);
+
+            if (packetTable != null) {
+                packetTable.updateColumnVisibility();
+            }
+        };
+
+        timestampMenuItem.addItemListener(viewItemListener);
+        viewMenu.add(timestampMenuItem);
+        srcIPMenuItem.addItemListener(viewItemListener);
+        viewMenu.add(srcIPMenuItem);
+        srcPortMenuItem.addItemListener(viewItemListener);
+        viewMenu.add(srcPortMenuItem);
+        destIPMenuItem.addItemListener(viewItemListener);
+        viewMenu.add(destIPMenuItem);
+        destPortMenuItem.addItemListener(viewItemListener);
+        viewMenu.add(destPortMenuItem);
+        ipPacketSizeMenuItem.addItemListener(viewItemListener);
+        viewMenu.add(ipPacketSizeMenuItem);
+
+        // Update appropriate values whenever the selected tab changes
         tabbedPane.addChangeListener(e -> {
             PacketPanel packetPanel = ((PacketPanel) tabbedPane.getSelectedComponent());
             if (packetPanel == null) {
@@ -167,6 +218,7 @@ public class App extends JFrame {
             }
             printTableMenuItem.setEnabled(true);
             packetTable = packetPanel.getPacketTable();
+            packetTable.updateColumnVisibility();
             setTitle(packetPanel.getName());
         });
         add(tabbedPane);
@@ -225,7 +277,9 @@ public class App extends JFrame {
             packetTable.getInputMap().put(pasteKeyStroke, "pasteAction");
             packetTable.getActionMap().put("pasteAction", pasteAction);
 
-            packetPanel.getPacketTable().setComponentPopupMenu(popupMenu);
+            packetTable.updateColumnVisibility();
+            packetTable.setComponentPopupMenu(popupMenu);
+            
             filename = packetPanel.getName();
             tabbedPane.setTabComponentAt(tabbedPane.getSelectedIndex(), new PacketTab(filename, packetPanel));
             setTitle(filename);

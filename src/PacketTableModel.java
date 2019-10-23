@@ -1,20 +1,6 @@
 import javax.swing.table.AbstractTableModel;
 
-public class PacketTableModel extends AbstractTableModel {
-
-    public static final String TIMESTAMP_COL_NAME = "Timestamp";
-    public static final String SRC_COL_NAME = "Source IP";
-    public static final String SRC_PORT_COL_NAME = "Source Port";
-    public static final String DEST_COL_NAME = "Destination IP";
-    public static final String DEST_PORT_COL_NAME = "Destination Port";
-    public static final String SIZE_COL_NAME = "IP Packet Size";
-
-    public static final int TIMESTAMP_COL = 0;
-    public static final int SRC_COL = 1;
-    public static final int SRC_PORT_COL = 2;
-    public static final int DEST_COL = 3;
-    public static final int DEST_PORT_COL = 4;
-    public static final int SIZE_COL = 5;
+public class PacketTableModel extends AbstractTableModel implements PacketTableColumns {
 
     private int timestampCol = TIMESTAMP_COL;
     private int srcCol = SRC_COL;

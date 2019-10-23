@@ -158,15 +158,15 @@ public class PacketPanel extends JPanel {
         srcRadioButton.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 browseComboBox.setModel(ipFilterRadioButton.isSelected() ? browseSrcIPComboBoxModel : browseSrcPortComboBoxModel);
+                displaySelectedHostData();
             }
-            displaySelectedHostData();
         });
 
         destRadioButton.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 browseComboBox.setModel(ipFilterRadioButton.isSelected() ? browseDestIPComboBoxModel : browseDestPortComboBoxModel);
+                displaySelectedHostData();
             }
-            displaySelectedHostData();
         });
 
         // Setup a combo box to select IPs from based on the selected radio button
@@ -217,7 +217,7 @@ public class PacketPanel extends JPanel {
         try {
             lines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
-            System.out.println("2");
+            System.out.println(e);
         }
     }
 

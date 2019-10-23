@@ -34,7 +34,7 @@ public class Simulator {
                 }
             }
         } catch (IOException e) {
-            System.out.println("1");
+            System.out.println(e);
         }
     }
 
