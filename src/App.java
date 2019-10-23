@@ -98,6 +98,11 @@ public class App extends JFrame implements PacketTableColumns {
                 int[] rows = packetTable.getSelectedRows();
                 int[] cols = packetTable.getSelectedColumns();
 
+                int lastCol = -1;
+                for ( int col : cols) {
+                    lastCol = Math.max(col, lastCol);
+                }
+
                 StringBuilder stringBuilder = new StringBuilder();
                 Object cellValue;
                 String lineSeparator = System.lineSeparator();
@@ -106,7 +111,9 @@ public class App extends JFrame implements PacketTableColumns {
                     for (int col : cols) {
                         cellValue = packetTable.getValueAt(row, col);
                         stringBuilder.append(cellValue != null ? cellValue : "");
-                        stringBuilder.append("\t");
+                        if (col != lastCol) {
+                            stringBuilder.append("\t");
+                        }
                     }
                     stringBuilder.append(lineSeparator);
                 }
