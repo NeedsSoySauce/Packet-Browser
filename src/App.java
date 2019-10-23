@@ -71,6 +71,7 @@ public class App extends JFrame {
         JMenuItem printTableMenuItem = new JMenuItem("Print");
         printTableMenuItem.addActionListener(e -> printTable());
         printTableMenuItem.setAccelerator(KeyStroke.getKeyStroke("ctrl P"));
+        printTableMenuItem.setEnabled(false);
         fileMenu.add(printTableMenuItem);
 
         fileMenu.add(new JSeparator());
@@ -159,9 +160,11 @@ public class App extends JFrame {
         tabbedPane.addChangeListener(e -> {
             PacketPanel packetPanel = ((PacketPanel) tabbedPane.getSelectedComponent());
             if (packetPanel == null) {
+                printTableMenuItem.setEnabled(false);
                 setTitle(APP_NAME);
                 return;
             }
+            printTableMenuItem.setEnabled(true);
             packetTable = packetPanel.getPacketTable();
             setTitle(packetPanel.getName());
         });
@@ -239,10 +242,6 @@ public class App extends JFrame {
                 e.printStackTrace();
             }
         }
-    }
-
-    class PrintPreview {
-
     }
 
     class PacketTab extends JPanel {
