@@ -14,6 +14,7 @@ import java.io.IOException;
 public class App extends JFrame {
 
     public static final String APP_NAME = "Packet Browser";
+    private static final FlowLayout PACKET_TAB_LAYOUT = new FlowLayout(FlowLayout.LEFT, 0, 0);
     private ImageIcon closeTabIcon;
     private Action copyAction, pasteAction;
     private KeyStroke copyKeyStroke = KeyStroke.getKeyStroke("ctrl C");
@@ -251,7 +252,7 @@ public class App extends JFrame {
         PacketTab(String name, Component component) {
             this.component = component;
 
-            setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            setLayout(PACKET_TAB_LAYOUT);
             setOpaque(false);
             add(new JLabel(name));
 
@@ -261,11 +262,7 @@ public class App extends JFrame {
             closeButton.setContentAreaFilled(false);
             closeButton.setFocusPainted(false);
             closeButton.setOpaque(false);
-
-            closeButton.addActionListener(e -> {
-                tabbedPane.remove(component);
-            });
-
+            closeButton.addActionListener(e -> tabbedPane.remove(component));
             add(closeButton);
         }
     }

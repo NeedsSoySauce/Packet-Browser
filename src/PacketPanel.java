@@ -14,13 +14,8 @@ import java.util.List;
 
 public class PacketPanel extends JPanel {
 
-    private static FlowLayout BORDERED_PANEL_LAYOUT = new FlowLayout();
+    private static FlowLayout BORDERED_PANEL_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 0);
     private static Border BORDERED_PANEL_BORDER = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-
-    static {
-        BORDERED_PANEL_LAYOUT.setHgap(4);
-        BORDERED_PANEL_LAYOUT.setVgap(0);
-    }
 
     // Components for the packet browsing mode
     private JComboBox<Object> browseComboBox = new JComboBox<>();
@@ -226,6 +221,18 @@ public class PacketPanel extends JPanel {
         }
     }
 
+    private void setTableModel(Packet[] packets, boolean isSrcHosts) {
+        if (packets != null) {
+            model = new PacketTableModel(packets, isSrcHosts);
+        } else {
+            // No valid packet data available so we display an empty table
+            model = new PacketTableModel(new Packet[0], isSrcHosts);
+        }
+
+        model.addTableModelListener(tableModelListener);
+        packetTable.setModel(model);
+    }
+
     private void displaySelectedHostData() {
         Packet[] packets = null;
         boolean isSrcHosts = srcRadioButton.isSelected();
@@ -241,16 +248,7 @@ public class PacketPanel extends JPanel {
                 packets = simulator.getTableData(hostPort, isSrcHosts);
             }
         }
-
-        if (packets != null) {
-            model = new PacketTableModel(packets, isSrcHosts);
-        } else {
-            // No valid packet data available so we display an empty table
-            model = new PacketTableModel(new Packet[0], isSrcHosts);
-        }
-
-        model.addTableModelListener(tableModelListener);
-        packetTable.setModel(model);
+        setTableModel(packets, isSrcHosts);
     }
 
     private void displaySelectedPacketFlowData() {
@@ -269,16 +267,7 @@ public class PacketPanel extends JPanel {
                 packets = simulator.getPacketFlowTableData(srcPort, destPort);
             }
         }
-
-        if (packets != null) {
-            model = new PacketTableModel(packets, true);
-        } else {
-            // No valid packet data available so we display an empty table
-            model = new PacketTableModel(new Packet[0], true);
-        }
-
-        model.addTableModelListener(tableModelListener);
-        packetTable.setModel(model);
+        setTableModel(packets, true);
     }
 
     private void setFilterMode(boolean filterByIP) {
