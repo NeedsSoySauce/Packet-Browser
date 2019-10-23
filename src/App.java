@@ -13,7 +13,7 @@ import java.awt.print.PrinterException;
 import java.io.File;
 import java.io.IOException;
 
-public class App extends JFrame {
+public class App extends JFrame implements PacketTableColumns {
 
     public static final String APP_NAME = "Packet Browser";
     private static final FlowLayout PACKET_TAB_LAYOUT = new FlowLayout(FlowLayout.LEFT, 0, 0);
@@ -164,27 +164,27 @@ public class App extends JFrame {
         JMenu viewMenu = new JMenu("View");
         viewMenu.setMnemonic(KeyEvent.VK_V);
         menuBar.add(viewMenu);
-        JCheckBoxMenuItem timestampMenuItem = new JCheckBoxMenuItem("Timestamp", true);
-        JCheckBoxMenuItem srcIPMenuItem = new JCheckBoxMenuItem("Source IP", true);
-        JCheckBoxMenuItem srcPortMenuItem = new JCheckBoxMenuItem("Source Port", true);
-        JCheckBoxMenuItem destIPMenuItem = new JCheckBoxMenuItem("Destination IP", true);
-        JCheckBoxMenuItem destPortMenuItem = new JCheckBoxMenuItem("Destination Port", true);
-        JCheckBoxMenuItem ipPacketSizeMenuItem = new JCheckBoxMenuItem("IP Packet Size", true);
+        JCheckBoxMenuItem timestampMenuItem = new JCheckBoxMenuItem(TIMESTAMP_COL_NAME, true);
+        JCheckBoxMenuItem srcIPMenuItem = new JCheckBoxMenuItem(SRC_COL_NAME, true);
+        JCheckBoxMenuItem srcPortMenuItem = new JCheckBoxMenuItem(SRC_PORT_COL_NAME, true);
+        JCheckBoxMenuItem destIPMenuItem = new JCheckBoxMenuItem(DEST_COL_NAME, true);
+        JCheckBoxMenuItem destPortMenuItem = new JCheckBoxMenuItem(DEST_PORT_COL_NAME, true);
+        JCheckBoxMenuItem ipPacketSizeMenuItem = new JCheckBoxMenuItem(SIZE_COL_NAME, true);
 
         ItemListener viewItemListener = e -> {
             String columnName;
             if (e.getSource().equals(timestampMenuItem)) {
-                columnName = PacketTableColumns.TIMESTAMP_COL_NAME;
+                columnName = TIMESTAMP_COL_NAME;
             } else if (e.getSource().equals(srcIPMenuItem)) {
-                columnName = PacketTableColumns.SRC_COL_NAME;
+                columnName = SRC_COL_NAME;
             } else if (e.getSource().equals(srcPortMenuItem)) {
-                columnName = PacketTableColumns.SRC_PORT_COL_NAME;
+                columnName = SRC_PORT_COL_NAME;
             } else if (e.getSource().equals(destIPMenuItem)) {
-                columnName = PacketTableColumns.DEST_COL_NAME;
+                columnName = DEST_COL_NAME;
             } else if (e.getSource().equals(destPortMenuItem)) {
-                columnName = PacketTableColumns.DEST_PORT_COL_NAME;
+                columnName = DEST_PORT_COL_NAME;
             } else if (e.getSource().equals(ipPacketSizeMenuItem)) {
-                columnName = PacketTableColumns.TIMESTAMP_COL_NAME;
+                columnName = SIZE_COL_NAME;
             } else {
                 return;
             }
@@ -279,7 +279,7 @@ public class App extends JFrame {
 
             packetTable.updateColumnVisibility();
             packetTable.setComponentPopupMenu(popupMenu);
-            
+
             filename = packetPanel.getName();
             tabbedPane.setTabComponentAt(tabbedPane.getSelectedIndex(), new PacketTab(filename, packetPanel));
             setTitle(filename);
