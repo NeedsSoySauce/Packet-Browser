@@ -7,6 +7,7 @@ import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.awt.print.PrinterException;
 import java.io.File;
 import java.io.IOException;
 
@@ -50,6 +51,7 @@ public class App extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
+        // Setup file menu
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         menuBar.add(fileMenu);
@@ -63,6 +65,13 @@ public class App extends JFrame {
         openNewTabMenuItem.addActionListener(e -> openFile(true));
         openNewTabMenuItem.setAccelerator(KeyStroke.getKeyStroke("ctrl shift O"));
         fileMenu.add(openNewTabMenuItem);
+
+        fileMenu.add(new JSeparator());
+
+        JMenuItem printTableMenuItem = new JMenuItem("Print");
+        printTableMenuItem.addActionListener(e -> printTable());
+        printTableMenuItem.setAccelerator(KeyStroke.getKeyStroke("ctrl P"));
+        fileMenu.add(printTableMenuItem);
 
         fileMenu.add(new JSeparator());
 
@@ -220,6 +229,20 @@ public class App extends JFrame {
         } else {
             setTitle("Packet Browser");
         }
+    }
+
+    private void printTable() {
+        if (packetTable != null) {
+            try {
+                packetTable.print();
+            } catch (PrinterException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    class PrintPreview {
+
     }
 
     class PacketTab extends JPanel {
