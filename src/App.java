@@ -99,11 +99,13 @@ public class App extends JFrame implements PacketTableColumns {
                 int[] cols = packetTable.getSelectedColumns();
 
                 StringBuilder stringBuilder = new StringBuilder();
+                Object cellValue;
                 String lineSeparator = System.lineSeparator();
 
                 for (int row : rows) {
                     for (int col : cols) {
-                        stringBuilder.append(packetTable.getValueAt(row, col));
+                        cellValue = packetTable.getValueAt(row, col);
+                        stringBuilder.append(cellValue != null ? cellValue : "");
                         stringBuilder.append("\t");
                     }
                     stringBuilder.append(lineSeparator);
