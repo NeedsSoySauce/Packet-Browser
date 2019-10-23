@@ -171,7 +171,7 @@ public class App extends JFrame implements PacketTableColumns {
         JCheckBoxMenuItem destPortMenuItem = new JCheckBoxMenuItem(DEST_PORT_COL_NAME, true);
         JCheckBoxMenuItem ipPacketSizeMenuItem = new JCheckBoxMenuItem(SIZE_COL_NAME, true);
 
-        ItemListener viewItemListener = e -> {
+        ItemListener viewMenuItemListener = e -> {
             String columnName;
             if (e.getSource().equals(timestampMenuItem)) {
                 columnName = TIMESTAMP_COL_NAME;
@@ -195,17 +195,17 @@ public class App extends JFrame implements PacketTableColumns {
             }
         };
 
-        timestampMenuItem.addItemListener(viewItemListener);
+        timestampMenuItem.addItemListener(viewMenuItemListener);
         viewMenu.add(timestampMenuItem);
-        srcIPMenuItem.addItemListener(viewItemListener);
+        srcIPMenuItem.addItemListener(viewMenuItemListener);
         viewMenu.add(srcIPMenuItem);
-        srcPortMenuItem.addItemListener(viewItemListener);
+        srcPortMenuItem.addItemListener(viewMenuItemListener);
         viewMenu.add(srcPortMenuItem);
-        destIPMenuItem.addItemListener(viewItemListener);
+        destIPMenuItem.addItemListener(viewMenuItemListener);
         viewMenu.add(destIPMenuItem);
-        destPortMenuItem.addItemListener(viewItemListener);
+        destPortMenuItem.addItemListener(viewMenuItemListener);
         viewMenu.add(destPortMenuItem);
-        ipPacketSizeMenuItem.addItemListener(viewItemListener);
+        ipPacketSizeMenuItem.addItemListener(viewMenuItemListener);
         viewMenu.add(ipPacketSizeMenuItem);
 
         // Update appropriate values whenever the selected tab changes
