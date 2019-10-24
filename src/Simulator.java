@@ -21,10 +21,16 @@ public class Simulator {
      * @see Packet#Packet(String)
      */
     public Simulator(File file) {
+        Packet packet;
         try {
             List<String> lines = Files.readAllLines(file.toPath());
             for (int i = 0; i < lines.size(); i++) {
-                Packet packet = new Packet(lines.get(i));
+                try {
+                    packet = new Packet(lines.get(i));
+                } catch (IllegalArgumentException e) {
+                    // Invalid data
+                    continue;
+                }
                 packet.setLineIndex(i);
                 if (hasValidIPData(packet)) {
                     validIPPackets.add(packet);
@@ -34,6 +40,7 @@ public class Simulator {
                 }
             }
         } catch (IOException e) {
+            // Failed to read file
             System.out.println(e);
         }
     }

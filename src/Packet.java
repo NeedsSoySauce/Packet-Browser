@@ -25,9 +25,11 @@ public class Packet implements TraceFileConstants {
      * @param tabDelimitedData a string of tab delimited data where the first eight elements are in the form "{@code
      *                         <id> <timestamp> <src ip> <src port> <dest ip> <dest port> <ethernet frame size> <IP
      *                         packet size}"
+     * @throws IllegalArgumentException Invalid data in tabDelimitedData
      */
-    public Packet(String tabDelimitedData) {
+    public Packet(String tabDelimitedData) throws IllegalArgumentException {
         String[] data = tabDelimitedData.split("\\t", MAX_COL + 2);
+
         // Extend all data so that it's length is at least 8
         if (data.length < MAX_COL + 1) {
             data = Arrays.copyOf(data, MAX_COL + 1);
@@ -40,11 +42,17 @@ public class Packet implements TraceFileConstants {
         }
 
         this.data = data;
-        lineIndex = data[ID_COL].isEmpty() ? null : Integer.parseInt(data[ID_COL]);
-        srcHost = new Host(data[SRC_IP_COL], data[SRC_PORT_COL].isEmpty() ? null : Integer.parseInt(data[SRC_PORT_COL]));
-        destHost = new Host(data[DEST_IP_COL], data[DEST_PORT_COL].isEmpty() ? null : Integer.parseInt(data[DEST_PORT_COL]));
-        timestamp = data[TIMESTAMP_COL].isEmpty() ? null : Double.parseDouble(data[TIMESTAMP_COL]);
-        size = data[IP_PACKET_SIZE_COL].isEmpty() ? null : Integer.parseInt(data[IP_PACKET_SIZE_COL]);
+        try {
+            lineIndex = data[ID_COL].isEmpty() ? null : Integer.parseInt(data[ID_COL]);
+            srcHost = new Host(data[SRC_IP_COL], data[SRC_PORT_COL].isEmpty() ? null : Integer.parseInt(data[SRC_PORT_COL]));
+            destHost = new Host(data[DEST_IP_COL], data[DEST_PORT_COL].isEmpty() ? null : Integer.parseInt(data[DEST_PORT_COL]));
+            timestamp = data[TIMESTAMP_COL].isEmpty() ? null : Double.parseDouble(data[TIMESTAMP_COL]);
+            size = data[IP_PACKET_SIZE_COL].isEmpty() ? null : Integer.parseInt(data[IP_PACKET_SIZE_COL]);
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            throw new IllegalArgumentException("Invalid data in tabDelimitedData");
+        }
+
     }
 
     /**

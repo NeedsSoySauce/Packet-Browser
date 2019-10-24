@@ -65,6 +65,7 @@ public class PacketPanel extends JPanel {
             Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
         } catch (IOException err) {
             // Failed to write lines
+            System.out.println(err);
         }
     };
 
@@ -212,6 +213,7 @@ public class PacketPanel extends JPanel {
         try {
             lines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
+            // Failed to read file
             System.out.println(e);
         }
     }
