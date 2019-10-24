@@ -13,7 +13,6 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
     private double mean;
 
     private String[] columnNames = new String[6];
-    //    private Object[][] data;
     private Packet[] packets;
 
     /**
@@ -45,16 +44,6 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
         }
 
         this.packets = packets;
-//        data = new Object[packets.length + 2][columnNames.length];
-//        for (int i = 0; i < packets.length; i++) {
-//            data[i][timestampCol] = packets[i].getTimeStamp();
-//            data[i][srcCol] = packets[i].getSourceHostIP();
-//            data[i][srcPortCol] = packets[i].getSourceHostPort();
-//            data[i][destCol] = packets[i].getDestinationHostIP();
-//            data[i][destPortCol] = packets[i].getDestinationHostPort();
-//            data[i][sizeCol] = packets[i].getIpPacketSize();
-//        }
-
         updateSumAndMean();
     }
 
@@ -110,10 +99,10 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
 
-        if (rowIndex >= getRowCount()) {
-            throw new IndexOutOfBoundsException(rowIndex + " >= " + getRowCount());
-        } else if (columnIndex >= getColumnCount()) {
-            throw new IndexOutOfBoundsException(columnIndex + " >= " + getColumnCount());
+        if (rowIndex >= getRowCount() || rowIndex < 0) {
+            throw new IndexOutOfBoundsException("Illegal rowIndex");
+        } else if (columnIndex >= getColumnCount() || columnIndex < 0) {
+            throw new IndexOutOfBoundsException("Illegal columnIndex");
         }
 
         // Return sum or mean
