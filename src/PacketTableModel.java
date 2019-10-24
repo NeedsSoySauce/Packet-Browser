@@ -9,8 +9,11 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
     private int destPortCol = DEST_PORT_COL;
     private int sizeCol = SIZE_COL;
 
+    private int sum;
+    private double mean;
+
     private String[] columnNames = new String[6];
-    private Object[][] data;
+    //    private Object[][] data;
     private Packet[] packets;
 
     /**
@@ -42,15 +45,15 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
         }
 
         this.packets = packets;
-        data = new Object[packets.length + 2][columnNames.length];
-        for (int i = 0; i < packets.length; i++) {
-            data[i][timestampCol] = packets[i].getTimeStamp();
-            data[i][srcCol] = packets[i].getSourceHostIP();
-            data[i][srcPortCol] = packets[i].getSourceHostPort();
-            data[i][destCol] = packets[i].getDestinationHostIP();
-            data[i][destPortCol] = packets[i].getDestinationHostPort();
-            data[i][sizeCol] = packets[i].getIpPacketSize();
-        }
+//        data = new Object[packets.length + 2][columnNames.length];
+//        for (int i = 0; i < packets.length; i++) {
+//            data[i][timestampCol] = packets[i].getTimeStamp();
+//            data[i][srcCol] = packets[i].getSourceHostIP();
+//            data[i][srcPortCol] = packets[i].getSourceHostPort();
+//            data[i][destCol] = packets[i].getDestinationHostIP();
+//            data[i][destPortCol] = packets[i].getDestinationHostPort();
+//            data[i][sizeCol] = packets[i].getIpPacketSize();
+//        }
 
         updateSumAndMean();
     }
@@ -70,30 +73,28 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
         }
 
         if (packetSize >= 0) {
-            data[rowIndex][columnIndex] = packetSize;
             packets[rowIndex].setIpPacketSize(packetSize);
             fireTableCellUpdated(rowIndex, columnIndex);
 
             // Update the sum and mean values if a packet size has been changed
             if (columnIndex == sizeCol) {
                 updateSumAndMean();
-                fireTableRowsUpdated(data.length - 2, data.length - 1);
+                fireTableRowsUpdated(packets.length + 1, packets.length + 2);
             }
         }
     }
 
     private void updateSumAndMean() {
-        int sum = 0;
+        sum = 0;
         for (Packet packet : packets) {
             sum += packet.getIpPacketSize();
         }
-        data[data.length - 2][sizeCol] = sum;
-        data[data.length - 1][sizeCol] = packets.length > 0 ? (double) sum / packets.length : 0;
+        mean = packets.length > 0 ? (double) sum / packets.length : 0;
     }
 
     @Override
     public int getRowCount() {
-        return data.length;
+        return packets.length + 2;
     }
 
     @Override
@@ -108,12 +109,50 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        return data[rowIndex][columnIndex];
+
+        if (rowIndex >= getRowCount()) {
+            throw new IndexOutOfBoundsException(rowIndex + " >= " + getRowCount());
+        } else if (columnIndex >= getColumnCount()) {
+            throw new IndexOutOfBoundsException(columnIndex + " >= " + getColumnCount());
+        }
+
+        // Return sum or mean
+        if (rowIndex >= packets.length) {
+
+            if (columnIndex != sizeCol) {
+                return null;
+            }
+
+            if (rowIndex == packets.length) {
+                return sum;
+            } else if (rowIndex == packets.length + 1) {
+                return mean;
+            }
+        }
+
+        Packet packet = packets[rowIndex];
+
+        if (columnIndex == timestampCol) {
+            return packet.getTimeStamp();
+        } else if (columnIndex == srcCol) {
+            return packet.getSourceHostIP();
+        } else if (columnIndex == srcPortCol) {
+            return packet.getSourceHostPort();
+        } else if (columnIndex == destCol) {
+            return packet.getDestinationHostIP();
+        } else if (columnIndex == destPortCol) {
+            return packet.getSourceHostPort();
+        } else if (columnIndex == sizeCol) {
+            return packet.getIpPacketSize();
+        }
+
+        throw new IndexOutOfBoundsException("Illegal index");
+
     }
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return rowIndex < data.length - 2 && columnIndex == sizeCol;
+        return rowIndex < packets.length && columnIndex == sizeCol;
     }
 
     /**
