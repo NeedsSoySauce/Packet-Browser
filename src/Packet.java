@@ -1,9 +1,21 @@
 import java.util.Arrays;
 
-public class Packet {
+interface TraceFileConstants {
+    int ID_COL = 0;
+    int TIMESTAMP_COL = 1;
+    int SRC_IP_COL = 2;
+    int SRC_PORT_COL = 3;
+    int DEST_IP_COL = 4;
+    int DEST_PORT_COL = 5;
+    int IP_PACKET_SIZE_COL = 7;
+    int MAX_COL = Arrays.stream(new int[]{
+            ID_COL, TIMESTAMP_COL, SRC_IP_COL, SRC_PORT_COL, DEST_IP_COL, DEST_PORT_COL, IP_PACKET_SIZE_COL
+    }).max().getAsInt();
+}
 
+public class Packet implements TraceFileConstants {
     private Host srcHost, destHost;
-    private Double time;
+    private Double timestamp;
     private Integer size, lineIndex;
     private String[] data;
 
@@ -15,11 +27,10 @@ public class Packet {
      *                         packet size}"
      */
     public Packet(String tabDelimitedData) {
-        String[] data = tabDelimitedData.split("\\t", 9);
-
+        String[] data = tabDelimitedData.split("\\t", MAX_COL + 2);
         // Extend all data so that it's length is at least 8
-        if (data.length < 8) {
-            data = Arrays.copyOf(data, 8);
+        if (data.length < MAX_COL + 1) {
+            data = Arrays.copyOf(data, MAX_COL + 1);
             // Replace all null values with empty strings
             for (int i = 0; i < data.length; i++) {
                 if (data[i] == null) {
@@ -29,11 +40,11 @@ public class Packet {
         }
 
         this.data = data;
-        lineIndex = data[0].isEmpty() ? null : Integer.parseInt(data[0]);
-        srcHost = new Host(data[2], data[3].isEmpty() ? null : Integer.parseInt(data[3]));
-        destHost = new Host(data[4], data[5].isEmpty() ? null : Integer.parseInt(data[5]));
-        time = data[1].isEmpty() ? null : Double.parseDouble(data[1]);
-        size = data[7].isEmpty() ? null : Integer.parseInt(data[7]);
+        lineIndex = data[ID_COL].isEmpty() ? null : Integer.parseInt(data[ID_COL]);
+        srcHost = new Host(data[SRC_IP_COL], data[SRC_PORT_COL].isEmpty() ? null : Integer.parseInt(data[SRC_PORT_COL]));
+        destHost = new Host(data[DEST_IP_COL], data[DEST_PORT_COL].isEmpty() ? null : Integer.parseInt(data[DEST_PORT_COL]));
+        timestamp = data[TIMESTAMP_COL].isEmpty() ? null : Double.parseDouble(data[TIMESTAMP_COL]);
+        size = data[IP_PACKET_SIZE_COL].isEmpty() ? null : Integer.parseInt(data[IP_PACKET_SIZE_COL]);
     }
 
     /**
@@ -58,7 +69,7 @@ public class Packet {
      */
     public void setSourceHost(Host host) {
         srcHost = host;
-        data[2] = host.getIp();
+        data[SRC_IP_COL] = host.getIp();
     }
 
     /**
@@ -73,7 +84,7 @@ public class Packet {
      */
     public void setDestinationHost(Host host) {
         destHost = host;
-        data[3] = host.getIp();
+        data[DEST_IP_COL] = host.getIp();
     }
 
     /**
@@ -122,15 +133,15 @@ public class Packet {
      * @return this packets timestamp
      */
     public double getTimeStamp() {
-        return time;
+        return timestamp;
     }
 
     /**
-     * @param time the time this packet was recorded
+     * @param time the timestamp this packet was recorded
      */
     public void setTimeStamp(double time) {
-        this.time = time;
-        data[1] = String.valueOf(time);
+        this.timestamp = time;
+        data[TIMESTAMP_COL] = String.valueOf(time);
     }
 
     /**
@@ -145,12 +156,12 @@ public class Packet {
      */
     public void setIpPacketSize(int size) {
         this.size = size;
-        data[7] = String.valueOf(size);
+        data[IP_PACKET_SIZE_COL] = String.valueOf(size);
     }
 
     @Override
     public String toString() {
-        return String.format("src=%s, dest=%s, time=%.2f, size=%d", srcHost, destHost, time, size);
+        return String.format("src=%s, dest=%s, timestamp=%.2f, size=%d", srcHost, destHost, timestamp, size);
     }
 
 }
