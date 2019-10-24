@@ -10,10 +10,12 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.print.PrinterException;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 
-public class App extends JFrame implements PacketTableColumns {
+public class App extends JFrame implements PacketTableConstants {
 
     public static final String APP_NAME = "Packet Browser";
     private static final FlowLayout PACKET_TAB_LAYOUT = new FlowLayout(FlowLayout.LEFT, 0, 0);
@@ -175,7 +177,6 @@ public class App extends JFrame implements PacketTableColumns {
         pasteMenuItem.setAction(pasteAction);
         editMenu.add(pasteMenuItem);
 
-
         // Setup a menu to change the columns that are displayed in the packetTable
         JMenu viewMenu = new JMenu("View");
         viewMenu.setMnemonic(KeyEvent.VK_V);
@@ -235,6 +236,7 @@ public class App extends JFrame implements PacketTableColumns {
             printTableMenuItem.setEnabled(true);
             packetTable = packetPanel.getPacketTable();
             packetTable.updateColumnVisibility();
+            updateCopyPasteActions();
             setTitle(packetPanel.getName());
         });
         add(tabbedPane);
@@ -274,32 +276,39 @@ public class App extends JFrame implements PacketTableColumns {
 
             if (openInNewTab || tabbedPane.getSelectedComponent() == null) {
                 packetPanel = new PacketPanel(file);
+                packetTable = packetPanel.getPacketTable();
+
+                // Setup shortcuts for copy and paste actions
+                packetTable.getInputMap().put(copyKeyStroke, "copyAction");
+                packetTable.getActionMap().put("copyAction", copyAction);
+                packetTable.getInputMap().put(pasteKeyStroke, "pasteAction");
+                packetTable.getActionMap().put("pasteAction", pasteAction);
+                packetTable.setComponentPopupMenu(popupMenu);
+
                 tabbedPane.addTab(null, packetPanel);
                 tabbedPane.setSelectedComponent(packetPanel);
             } else {
                 packetPanel = (PacketPanel) tabbedPane.getSelectedComponent();
+                packetTable = packetPanel.getPacketTable();
                 packetPanel.openFile(file);
             }
 
-            // Setup listeners to enable or disable popup menu items based on what's selected
-            packetTable = packetPanel.getPacketTable();
-            packetTable.getSelectionModel().addListSelectionListener(copyPasteListener);
-            packetTable.getColumnModel().getSelectionModel().addListSelectionListener(copyPasteListener);
-            updateCopyPasteActions();
-
-            // Set shortcuts for copy and paste
-            packetTable.getInputMap().put(copyKeyStroke, "copyAction");
-            packetTable.getActionMap().put("copyAction", copyAction);
-            packetTable.getInputMap().put(pasteKeyStroke, "pasteAction");
-            packetTable.getActionMap().put("pasteAction", pasteAction);
+            // Setup listeners to enable or disable copy paste menu items based on what's selected
+            PropertyChangeListener fileLoaded = new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent e) {
+                    packetTable.getSelectionModel().addListSelectionListener(copyPasteListener);
+                    packetTable.getColumnModel().getSelectionModel().addListSelectionListener(copyPasteListener);
+                    packetPanel.removePropertyChangeListener(this);
+                }
+            };
+            packetPanel.addPropertyChangeListener("packetTable", fileLoaded);
 
             packetTable.updateColumnVisibility();
-            packetTable.setComponentPopupMenu(popupMenu);
 
             filename = packetPanel.getName();
             tabbedPane.setTabComponentAt(tabbedPane.getSelectedIndex(), new PacketTab(filename, packetPanel));
             setTitle(filename);
-
         } else {
             setTitle("Packet Browser");
         }

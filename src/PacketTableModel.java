@@ -1,6 +1,6 @@
 import javax.swing.table.AbstractTableModel;
 
-public class PacketTableModel extends AbstractTableModel implements PacketTableColumns {
+public class PacketTableModel extends AbstractTableModel implements PacketTableConstants {
 
     private int timestampCol = TIMESTAMP_COL;
     private int srcCol = SRC_COL;

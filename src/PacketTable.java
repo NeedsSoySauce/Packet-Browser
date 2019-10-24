@@ -7,7 +7,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.HashSet;
 
-interface PacketTableColumns {
+interface PacketTableConstants {
     String TIMESTAMP_COL_NAME = "Timestamp";
     String SRC_COL_NAME = "Source IP";
     String SRC_PORT_COL_NAME = "Source Port";
@@ -24,7 +24,7 @@ interface PacketTableColumns {
     int SIZE_COL = 5;
 }
 
-public class PacketTable extends JTable implements PropertyChangeListener, PacketTableColumns {
+public class PacketTable extends JTable implements PropertyChangeListener, PacketTableConstants {
 
     protected static final Color EVEN_ROW_COLOR = new Color(245, 245, 245);
     protected static final Color BOTTOM_ROW_COLOR = new Color(225, 225, 225);
@@ -37,27 +37,18 @@ public class PacketTable extends JTable implements PropertyChangeListener, Packe
      * Creates a new PacketTable
      */
     public PacketTable() {
+        super();
         setCellSelectionEnabled(true);
         addPropertyChangeListener("model", this);
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        timestampCol = getColumn(TIMESTAMP_COL_NAME);
-        srcIPCol = getColumn(SRC_COL_NAME);
-        srcPortCol = getColumn(SRC_PORT_COL_NAME);
-        destIPCol = getColumn(DEST_COL_NAME);
-        destPortCol = getColumn(DEST_PORT_COL_NAME);
-        sizeCol = getColumn(SIZE_COL_NAME);
-        updateColumnVisibility();
+        setModel(new PacketTableModel(new Packet[0], true));
     }
 
     /**
      * Sets the given column name to be shown/hidden.
      *
-     * @param columnName the column to show/hide
+     * @param columnName the name of the column to show/hide
      * @param setVisible true to show the column, false to hide it
-     * @see PacketTableColumns
+     * @see PacketTableConstants
      */
     public static void setColumnVisibility(String columnName, boolean setVisible) {
         if (setVisible) {
@@ -67,6 +58,21 @@ public class PacketTable extends JTable implements PropertyChangeListener, Packe
         }
     }
 
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        try {
+            timestampCol = getColumn(TIMESTAMP_COL_NAME);
+            srcIPCol = getColumn(SRC_COL_NAME);
+            srcPortCol = getColumn(SRC_PORT_COL_NAME);
+            destIPCol = getColumn(DEST_COL_NAME);
+            destPortCol = getColumn(DEST_PORT_COL_NAME);
+            sizeCol = getColumn(SIZE_COL_NAME);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e);
+        }
+
+        updateColumnVisibility();
+    }
 
     /**
      * Refreshes the visible columns on this table, showing/hiding columns as needed.
@@ -76,6 +82,9 @@ public class PacketTable extends JTable implements PropertyChangeListener, Packe
         int lastCol;
         for (String columnName : COL_NAMES) {
             tableColumn = getTableColumnByName(columnName);
+            if (tableColumn == null) {
+                continue;
+            }
             if (visibleCols.contains(columnName)) {
                 try {
                     // If no error is thrown this column is already being displayed on this table

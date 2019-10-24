@@ -4,7 +4,8 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelListener;
 import java.awt.*;
-import java.awt.event.ItemEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -71,6 +72,8 @@ public class PacketPanel extends JPanel {
 
     /**
      * Creates a new PacketPanel with it's related GUI elements
+     *
+     * @param file the file to open and display in this panel's table
      */
     public PacketPanel(File file) {
         this.file = file;
@@ -109,23 +112,14 @@ public class PacketPanel extends JPanel {
         modeButtonGroup.add(flowRadioButton);
         browseRadioButton.setSelected(true);
 
-        flowRadioButton.addItemListener(l -> {
-            boolean isSelected = l.getStateChange() == ItemEvent.SELECTED;
-            if (l.getStateChange() == ItemEvent.SELECTED) {
-                // Display flow content
-                displaySelectedPacketFlowData();
-            }
-            flowPanel.setEnabled(isSelected);
-        });
+        ItemListener modeRadioButtonListener = e -> {
+            displaySelectedData();
+            flowPanel.setEnabled(flowRadioButton.isSelected());
+            browsePanel.setEnabled(browseRadioButton.isSelected());
+        };
 
-        browseRadioButton.addItemListener(l -> {
-            boolean isSelected = l.getStateChange() == ItemEvent.SELECTED;
-            if (l.getStateChange() == ItemEvent.SELECTED) {
-                // Display browse content
-                displaySelectedHostData();
-            }
-            browsePanel.setEnabled(isSelected);
-        });
+        flowRadioButton.addItemListener(modeRadioButtonListener);
+        browseRadioButton.addItemListener(modeRadioButtonListener);
 
         // Setup radio buttons to select the filter to select packets by
         ButtonGroup filterButtonGroup = new ButtonGroup();
@@ -133,17 +127,9 @@ public class PacketPanel extends JPanel {
         filterButtonGroup.add(portFilterRadioButton);
         ipFilterRadioButton.setSelected(true);
 
-        ipFilterRadioButton.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
-                setFilterMode(true);
-            }
-        });
-
-        portFilterRadioButton.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
-                setFilterMode(false);
-            }
-        });
+        ItemListener filterRadioButtonListener = e -> setFilterMode(ipFilterRadioButton.isSelected());
+        ipFilterRadioButton.addItemListener(filterRadioButtonListener);
+        portFilterRadioButton.addItemListener(filterRadioButtonListener);
 
         // Setup radio buttons to select whether we want to select packets based on their source or their destination
         ButtonGroup radioButtonGroup = new ButtonGroup();
@@ -151,25 +137,23 @@ public class PacketPanel extends JPanel {
         radioButtonGroup.add(destRadioButton);
         srcRadioButton.setSelected(true);
 
-        srcRadioButton.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
+        ItemListener browseRadioButtonListener = e -> {
+            if (srcRadioButton.isSelected()) {
                 browseComboBox.setModel(ipFilterRadioButton.isSelected() ? browseSrcIPComboBoxModel : browseSrcPortComboBoxModel);
-                displaySelectedHostData();
-            }
-        });
-
-        destRadioButton.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
+            } else {
                 browseComboBox.setModel(ipFilterRadioButton.isSelected() ? browseDestIPComboBoxModel : browseDestPortComboBoxModel);
-                displaySelectedHostData();
             }
-        });
+            displaySelectedData();
+        };
+
+        srcRadioButton.addItemListener(browseRadioButtonListener);
+        destRadioButton.addItemListener(browseRadioButtonListener);
 
         // Setup a combo box to select IPs from based on the selected radio button
-        browseComboBox.addActionListener(e -> displaySelectedHostData());
-        flowSrcComboBox.addActionListener(e -> displaySelectedPacketFlowData());
-        flowDestComboBox.addActionListener(e -> displaySelectedPacketFlowData());
-
+        ActionListener modeComboBoxListener = e -> displaySelectedData();
+        browseComboBox.addActionListener(modeComboBoxListener);
+        flowSrcComboBox.addActionListener(modeComboBoxListener);
+        flowDestComboBox.addActionListener(modeComboBoxListener);
 
         // Setup packet table
         JPanel packetTablePanel = new JPanel();
@@ -182,7 +166,6 @@ public class PacketPanel extends JPanel {
         add(packetTablePanel);
 
         openFile(file);
-
         setVisible(true);
     }
 
@@ -194,7 +177,10 @@ public class PacketPanel extends JPanel {
     }
 
     /**
-     * Opens a file and displays it's contents
+     * Opens a file and displays it's contents.
+     * <p>
+     * Note that this method is asynchronous, so to indicate the file has been loaded a PropertyChangeEvent for the
+     * property "packetTable" will be fired when it completes.
      *
      * @param file the file to open
      */
@@ -202,10 +188,24 @@ public class PacketPanel extends JPanel {
         if (file != null) {
             this.file = file;
             setName(file.getName());
-            simulator = new Simulator(file);
-            loadLines();
-            loadComboBoxOptions();
-            displaySelectedHostData();
+
+            // Load file in the background
+            SwingWorker worker = new SwingWorker() {
+                @Override
+                protected Simulator doInBackground() {
+                    simulator = new Simulator(file);
+                    loadLines();
+                    loadComboBoxOptions();
+                    return simulator;
+                }
+
+                @Override
+                protected void done() {
+                    setFilterMode(ipFilterRadioButton.isSelected());
+                    PacketPanel.this.firePropertyChange("packetTable", null, simulator);
+                }
+            };
+            worker.execute();
         }
     }
 
@@ -228,6 +228,14 @@ public class PacketPanel extends JPanel {
 
         model.addTableModelListener(tableModelListener);
         packetTable.setModel(model);
+    }
+
+    private void displaySelectedData() {
+        if (browseRadioButton.isSelected()) {
+            displaySelectedHostData();
+        } else {
+            displaySelectedPacketFlowData();
+        }
     }
 
     private void displaySelectedHostData() {
@@ -277,13 +285,7 @@ public class PacketPanel extends JPanel {
             flowSrcComboBox.setModel(flowSrcPortComboBoxModel);
             flowDestComboBox.setModel(flowDestPortComboBoxModel);
         }
-
-        if (browseRadioButton.isSelected()) {
-            displaySelectedHostData();
-        } else {
-            displaySelectedPacketFlowData();
-        }
-
+        displaySelectedData();
     }
 
     private void loadComboBoxOptions() {
@@ -303,8 +305,6 @@ public class PacketPanel extends JPanel {
         browseDestPortComboBoxModel = new DefaultComboBoxModel<>(destPorts);
         flowSrcPortComboBoxModel = new DefaultComboBoxModel<>(srcPorts);
         flowDestPortComboBoxModel = new DefaultComboBoxModel<>(destPorts);
-
-        setFilterMode(ipFilterRadioButton.isSelected());
     }
 
     static class BorderedPanel extends JPanel {
