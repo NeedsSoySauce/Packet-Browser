@@ -47,7 +47,7 @@ public class Packet {
 
 
     /**
-     * @return this packet's source host's ip
+     * @return this packet's source host
      */
     public Host getSourceHost() {
         return srcHost;
@@ -62,7 +62,7 @@ public class Packet {
     }
 
     /**
-     * @return this packet's destination host's ip
+     * @return this packet's destination host
      */
     public Host getDestinationHost() {
         return destHost;
@@ -74,6 +74,34 @@ public class Packet {
     public void setDestinationHost(Host host) {
         destHost = host;
         data[3] = host.getIp();
+    }
+
+    /**
+     * @return this packet's source host's ip
+     */
+    public String getSourceHostIP() {
+        return srcHost.getIp();
+    }
+
+    /**
+     * @return this packet's source host's port
+     */
+    public Integer getSourceHostPort() {
+        return srcHost.getPort();
+    }
+
+    /**
+     * @return this packet's destination host's ip
+     */
+    public String getDestinationHostIP() {
+        return destHost.getIp();
+    }
+
+    /**
+     * @return this packet's destination host's port
+     */
+    public Integer getDestinationHostPort() {
+        return destHost.getPort();
     }
 
     /**

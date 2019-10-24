@@ -45,10 +45,10 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
         data = new Object[packets.length + 2][columnNames.length];
         for (int i = 0; i < packets.length; i++) {
             data[i][timestampCol] = packets[i].getTimeStamp();
-            data[i][srcCol] = packets[i].getSourceHost().getIp();
-            data[i][srcPortCol] = packets[i].getSourceHost().getPort();
-            data[i][destCol] = packets[i].getDestinationHost().getIp();
-            data[i][destPortCol] = packets[i].getDestinationHost().getPort();
+            data[i][srcCol] = packets[i].getSourceHostIP();
+            data[i][srcPortCol] = packets[i].getSourceHostPort();
+            data[i][destCol] = packets[i].getDestinationHostIP();
+            data[i][destPortCol] = packets[i].getDestinationHostPort();
             data[i][sizeCol] = packets[i].getIpPacketSize();
         }
 

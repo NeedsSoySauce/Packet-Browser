@@ -39,7 +39,7 @@ public class App extends JFrame implements PacketTableColumns {
         // Load close tab icon
         try {
             BufferedImage image = ImageIO.read(App.class.getResource("close_icon.gif"));
-            closeTabIcon = new ImageIcon(image.getScaledInstance(16, 16, BufferedImage.SCALE_SMOOTH));
+            closeTabIcon = new ImageIcon(image.getScaledInstance(12, 12, BufferedImage.SCALE_SMOOTH));
         } catch (IOException | NullPointerException e) {
             // Failed to load image
         }
@@ -98,6 +98,11 @@ public class App extends JFrame implements PacketTableColumns {
                 int[] rows = packetTable.getSelectedRows();
                 int[] cols = packetTable.getSelectedColumns();
 
+                int lastRow = -1;
+                for (int row : rows) {
+                    lastRow = Math.max(row, lastRow);
+                }
+
                 int lastCol = -1;
                 for ( int col : cols) {
                     lastCol = Math.max(col, lastCol);
@@ -115,7 +120,9 @@ public class App extends JFrame implements PacketTableColumns {
                             stringBuilder.append("\t");
                         }
                     }
-                    stringBuilder.append(lineSeparator);
+                    if (row != lastRow) {
+                        stringBuilder.append(lineSeparator);
+                    }
                 }
 
                 StringSelection selection = new StringSelection(stringBuilder.toString());

@@ -3,7 +3,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.io.File;
@@ -43,7 +42,6 @@ public class PacketPanel extends JPanel {
     private DefaultComboBoxModel<Object> flowSrcPortComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> flowDestPortComboBoxModel = new DefaultComboBoxModel<>();
 
-    private JFileChooser chooser = new JFileChooser();
     private File file;
     private Simulator simulator;
     private List<String> lines;
@@ -62,7 +60,7 @@ public class PacketPanel extends JPanel {
         if (lineIndex == null) {
             return;
         }
-        lines.set(lineIndex - 1, packet.getTabDelimitedData());
+        lines.set(lineIndex, packet.getTabDelimitedData());
         try {
             Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
         } catch (IOException err) {
@@ -77,9 +75,6 @@ public class PacketPanel extends JPanel {
         this.file = file;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-        chooser.setFileFilter(new FileNameExtensionFilter("txt files", "txt"));
-        chooser.setDialogTitle("Select a file...");
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
