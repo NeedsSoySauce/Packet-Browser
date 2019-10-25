@@ -62,6 +62,11 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
         }
 
         if (packetSize >= 0) {
+
+            if ((Integer) getValueAt(rowIndex, columnIndex) == packetSize) {
+                return;
+            }
+
             packets[rowIndex].setIpPacketSize(packetSize);
             fireTableCellUpdated(rowIndex, columnIndex);
 
@@ -131,11 +136,9 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
             return packet.getDestinationHostIP();
         } else if (columnIndex == destPortCol) {
             return packet.getSourceHostPort();
-        } else if (columnIndex == sizeCol) {
+        } else {
             return packet.getIpPacketSize();
         }
-
-        throw new IndexOutOfBoundsException("Illegal index");
 
     }
 

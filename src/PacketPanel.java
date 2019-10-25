@@ -18,6 +18,7 @@ public class PacketPanel extends JPanel {
     private static Border BORDERED_PANEL_BORDER = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
     private final String tablePanelName = "tablePanel";
     private final String loadingPanelName = "loadingPanel";
+    private JLabel savingLabel = new JLabel("Changes saved");
 
     // Components for the packet browsing mode
     private JRadioButton browseRadioButton = new JRadioButton("Browse");
@@ -52,31 +53,33 @@ public class PacketPanel extends JPanel {
     private PacketTable packetTable = new PacketTable();
     private PacketTableModel model;
     private CardLayout cards = new CardLayout();
+    private Timer timer = new Timer(500, e -> savingLabel.setVisible(false));
     private TableModelListener tableModelListener = e -> {
 
-        // Ignore changes to the last two lines
+        // Ignore changes to the last two rows (sum and mean)
         if (e.getFirstRow() >= model.getRowCount() - 2) {
             return;
         }
 
         // Write changes to each packet to the file
         Packet packet = model.getPacketAt(e.getFirstRow());
-        Integer lineIndex = packet.getLineIndex();
-        if (lineIndex == null) {
-            return;
-        }
-        lines.set(lineIndex, packet.getTabDelimitedData());
+        lines.set(packet.getLineIndex(), packet.getTabDelimitedData());
         try {
             Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
         } catch (IOException err) {
             // Failed to write lines
             System.out.println(err);
         }
+        savingLabel.setVisible(true);
+        timer.restart();
     };
 
 
     /**
-     * Creates a new PacketPanel with it's related GUI elements
+     * Creates a new PacketPanel with it's related GUI elements.
+     * <p>
+     * Note that loading of the file occurs in the background, so to indicate the file has been loaded a
+     * PropertyChangeEvent for the property "packetTable" will be fired when it completes.
      *
      * @param file the file to open and display in this panel's table
      */
@@ -95,8 +98,6 @@ public class PacketPanel extends JPanel {
         add(loadingPanel, loadingPanelName);
 
         cards.show(this, "fileLoadingPanel");
-        setVisible(true);
-
         openFile(file);
     }
 
@@ -239,7 +240,7 @@ public class PacketPanel extends JPanel {
         flowDestPortComboBoxModel = new DefaultComboBoxModel<>(destPorts);
     }
 
-    static class BorderedPanel extends JPanel {
+    private class BorderedPanel extends JPanel {
         TitledBorder border;
 
         /**
@@ -273,7 +274,7 @@ public class PacketPanel extends JPanel {
         }
     }
 
-    static class DisableablePanel extends BorderedPanel {
+    private class DisableablePanel extends BorderedPanel {
 
         /**
          * Creates a new DisableablePanel with no title
@@ -305,7 +306,7 @@ public class PacketPanel extends JPanel {
         }
     }
 
-    class TableViewPanel extends JPanel {
+    private class TableViewPanel extends JPanel {
         TableViewPanel() {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -330,10 +331,14 @@ public class PacketPanel extends JPanel {
 
             DisableablePanel flowPanel = new DisableablePanel("View packet flow from...");
             flowPanel.add(flowSrcComboBox);
-            flowPanel.add(new JLabel("to"));
+            flowPanel.add(new JLabel(" to "));
             flowPanel.add(flowDestComboBox);
-            topPanel.add(flowPanel);
             flowPanel.setEnabled(false);
+            topPanel.add(flowPanel);
+
+            // Setup a very basic saving indicator
+            savingLabel.setVisible(false);
+            topPanel.add(savingLabel);
 
             // Setup radio buttons to select the mode to view packets in
             ButtonGroup modeButtonGroup = new ButtonGroup();
@@ -393,8 +398,6 @@ public class PacketPanel extends JPanel {
 
             add(topPanel);
             add(packetTablePanel);
-
-            setVisible(true);
         }
     }
 

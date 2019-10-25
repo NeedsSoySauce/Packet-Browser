@@ -162,7 +162,7 @@ public class App extends JFrame implements PacketTableConstants {
 
                 for (int row : rows) {
                     for (int col : cols) {
-                        if (packetTable.isCellEditable(row, col) && packetTable.getValueAt(row, col) != clipboardContent) {
+                        if (packetTable.isCellEditable(row, col)) {
                             packetTable.setValueAt(clipboardContent, row, col);
                         }
                     }
@@ -328,7 +328,7 @@ public class App extends JFrame implements PacketTableConstants {
         }
     }
 
-    class PacketTab extends JPanel {
+    private class PacketTab extends JPanel {
 
         Component component;
 

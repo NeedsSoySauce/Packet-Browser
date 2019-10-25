@@ -83,14 +83,14 @@ public class Simulator {
     }
 
     /**
-     * @return an array of unique source hosts sorted by their ip address
+     * @return an array of unique source host ips sorted by their ip address
      */
     public String[] getUniqueSortedSourceHostIPs() {
         return getUniqueSortedHostIPs(true);
     }
 
     /**
-     * @return an array of unique destination hosts sorted by their ip address
+     * @return an array of unique destination host ips sorted by their ip address
      */
     public String[] getUniqueSortedDestHostIPs() {
         return getUniqueSortedHostIPs(false);
@@ -149,14 +149,14 @@ public class Simulator {
     }
 
     /**
-     * @return an array of unique sorted source port numbers
+     * @return an array of unique sorted source host port numbers
      */
     public Integer[] getUniqueSortedSourceHostPorts() {
         return getUniqueSortedHostPorts(true);
     }
 
     /**
-     * @return an array of unique sorted destination port numbers
+     * @return an array of unique sorted destination host port numbers
      */
     public Integer[] getUniqueSortedDestHostPorts() {
         return getUniqueSortedHostPorts(false);
