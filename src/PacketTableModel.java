@@ -57,7 +57,7 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
         try {
             packetSize = Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            // Packet size was not an integer
+            // Packet size was not an integer or was out of range for an integer
             return;
         }
 
@@ -135,7 +135,7 @@ public class PacketTableModel extends AbstractTableModel implements PacketTableC
         } else if (columnIndex == destCol) {
             return packet.getDestinationHostIP();
         } else if (columnIndex == destPortCol) {
-            return packet.getSourceHostPort();
+            return packet.getDestinationHostPort();
         } else {
             return packet.getIpPacketSize();
         }

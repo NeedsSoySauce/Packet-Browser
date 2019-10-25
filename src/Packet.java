@@ -155,14 +155,14 @@ public class Packet implements TraceFileConstants {
     /**
      * @return the size of this packet in bytes
      */
-    public int getIpPacketSize() {
+    public Integer getIpPacketSize() {
         return size;
     }
 
     /**
      * @param size the size of this packet in bytes
      */
-    public void setIpPacketSize(int size) {
+    public void setIpPacketSize(Integer size) {
         this.size = size;
         data[IP_PACKET_SIZE_COL] = String.valueOf(size);
     }
