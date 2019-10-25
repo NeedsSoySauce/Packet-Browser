@@ -20,6 +20,8 @@ public class PacketPanel extends JPanel {
     private final String loadingPanelName = "loadingPanel";
 
     // Components for the packet browsing mode
+    private JRadioButton browseRadioButton = new JRadioButton("Browse");
+    private JRadioButton flowRadioButton = new JRadioButton("Flow");
     private JComboBox<Object> browseComboBox = new JComboBox<>();
     private JRadioButton srcRadioButton = new JRadioButton("Source");
     private JRadioButton destRadioButton = new JRadioButton("Destination");
@@ -27,23 +29,23 @@ public class PacketPanel extends JPanel {
     // Components for the packet flow mode
     private JComboBox<Object> flowSrcComboBox = new JComboBox<>();
     private JComboBox<Object> flowDestComboBox = new JComboBox<>();
-    private JRadioButton browseRadioButton = new JRadioButton("Browse");
-    private JRadioButton flowRadioButton = new JRadioButton("Flow");
 
     // Components for packet filtering selection
     private JRadioButton ipFilterRadioButton = new JRadioButton("IP");
     private JRadioButton portFilterRadioButton = new JRadioButton("Port");
 
     // These models are duplicated for each filter mode so that their selection states are saved if the user
-    // switches between filter modes
+    // switches between filter modes and also so that we don't have to regenerate them on every mode change
     private DefaultComboBoxModel<Object> browseSrcIPComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> browseDestIPComboBoxModel = new DefaultComboBoxModel<>();
-    private DefaultComboBoxModel<Object> flowSrcIPComboBoxModel = new DefaultComboBoxModel<>();
-    private DefaultComboBoxModel<Object> flowDestIPComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> browseSrcPortComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> browseDestPortComboBoxModel = new DefaultComboBoxModel<>();
+
+    private DefaultComboBoxModel<Object> flowSrcIPComboBoxModel = new DefaultComboBoxModel<>();
+    private DefaultComboBoxModel<Object> flowDestIPComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> flowSrcPortComboBoxModel = new DefaultComboBoxModel<>();
     private DefaultComboBoxModel<Object> flowDestPortComboBoxModel = new DefaultComboBoxModel<>();
+
     private File file;
     private Simulator simulator;
     private List<String> lines;

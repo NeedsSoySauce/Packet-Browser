@@ -297,8 +297,12 @@ public class App extends JFrame implements PacketTableConstants {
             PropertyChangeListener fileLoaded = new PropertyChangeListener() {
                 @Override
                 public void propertyChange(PropertyChangeEvent e) {
-                    packetTable.getSelectionModel().addListSelectionListener(copyPasteListener);
-                    packetTable.getColumnModel().getSelectionModel().addListSelectionListener(copyPasteListener);
+                    // It's possible that multiple PacketPanels could be loading at once, so we need to get the
+                    // packetTable attached to the packetPanel that finished loading
+                    PacketTable table = ((PacketPanel) e.getSource()).getPacketTable();
+
+                    table.getSelectionModel().addListSelectionListener(copyPasteListener);
+                    table.getColumnModel().getSelectionModel().addListSelectionListener(copyPasteListener);
                     packetPanel.removePropertyChangeListener(this);
                 }
             };
