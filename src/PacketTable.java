@@ -89,7 +89,6 @@ public class PacketTable extends JTable implements PropertyChangeListener, Packe
                 try {
                     // If no error is thrown this column is already being displayed on this table
                     getColumn(columnName);
-                    continue;
                 } catch (IllegalArgumentException e) {
                     addColumn(tableColumn);
                     lastCol = getColumnCount() - 1;

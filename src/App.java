@@ -18,7 +18,7 @@ import java.io.IOException;
 public class App extends JFrame implements PacketTableConstants {
 
     public static final String APP_NAME = "Packet Browser";
-    private static final FlowLayout PACKET_TAB_LAYOUT = new FlowLayout(FlowLayout.LEFT, 0, 0);
+    private static final FlowLayout PACKET_TAB_LAYOUT = new FlowLayout(FlowLayout.LEFT, 2, 0);
     private ImageIcon closeTabIcon;
     private Action copyAction, pasteAction;
     private KeyStroke copyKeyStroke = KeyStroke.getKeyStroke("ctrl C");
@@ -39,12 +39,14 @@ public class App extends JFrame implements PacketTableConstants {
     public App() {
 
         // Load close tab icon
+        BufferedImage image;
         try {
-            BufferedImage image = ImageIO.read(App.class.getResource("close_icon.gif"));
+            image = ImageIO.read(App.class.getResource("close_icon.gif"));
             closeTabIcon = new ImageIcon(image.getScaledInstance(12, 12, BufferedImage.SCALE_SMOOTH));
-        } catch (IOException | NullPointerException e) {
-            // Failed to load image
+        } catch (IOException | IllegalArgumentException e) {
+            System.out.println("Failed to load icon file 'close_icon.gif', using default tab close button text");
         }
+
 
         setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 
@@ -339,7 +341,11 @@ public class App extends JFrame implements PacketTableConstants {
             setOpaque(false);
             add(new JLabel(name));
 
-            JButton closeButton = new JButton(closeTabIcon);
+            JButton closeButton = new JButton("[x]");
+            if (closeTabIcon != null) {
+                closeButton.setText(null);
+                closeButton.setIcon(closeTabIcon);
+            }
             closeButton.setBorder(null);
             closeButton.setBorderPainted(false);
             closeButton.setContentAreaFilled(false);
